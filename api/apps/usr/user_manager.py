@@ -22,6 +22,7 @@ class UserManager(BaseUserManager):
 
         return user
 
+
     def create_superuser(self, first_name, last_name, email, password, **extra_fields):
         """Create and save a superuser with the given first_name, last_name, email, password, and role"""
         extra_fields.setdefault('role', UserRole.ADMIN)

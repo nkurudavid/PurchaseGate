@@ -30,8 +30,34 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 # DEBUG = True
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
-ALLOWED_HOSTS = ["*"]
+# CORS_ORIGIN_ALLOW_ALL = True 
+CORS_ALLOW_CREDENTIALS = True
+
+
+FRONTEND_PUBLIC_URL = os.getenv('FRONTEND_PUBLIC_URL')
+FRONTEND_STAFF_URL = os.getenv('FRONTEND_STAFF_URL')
+BACKEND_URL = os.getenv('BACKEND_URL')
+
+
+CSRF_TRUSTED_ORIGINS = [
+    FRONTEND_PUBLIC_URL,
+    FRONTEND_STAFF_URL,
+    BACKEND_URL,
+]
+
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_PUBLIC_URL,
+    FRONTEND_STAFF_URL,
+    BACKEND_URL,
+]
+
+# whitelisting frontend port
+CORS_ORIGIN_WHITELIST = os.getenv(
+    'CORS_ORIGIN_WHITELIST',
+    default=f"{FRONTEND_PUBLIC_URL},{FRONTEND_STAFF_URL},{BACKEND_URL}",
+).split(',')
 
 
 # Application definition
@@ -85,6 +111,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# user model
+AUTH_USER_MODEL = "usr.User"
+swappable = 'AUTH_USER_MODEL'
+
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -132,6 +163,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static/front'),
+)
+
+
+# Directory where static files will be collected
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# Media files (user-uploaded content)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
