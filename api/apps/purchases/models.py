@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from apps.purchases.constants import PURCHASE_STATUS_CHOICES, APPROVAL_CHOICES
+from apps.purchases.constants import PurchaseStatus, ApprovalStatus
 
 
 
@@ -9,7 +9,7 @@ class PurchaseRequest(models.Model):
     title = models.CharField(max_length=255, verbose_name="Purchase Title")
     description = models.TextField(verbose_name="Description...", blank=True, null=True)
     amount = models.DecimalField(verbose_name="Amount", max_digits=12, decimal_places=2)
-    status = models.CharField(verbose_name="Request Status", max_length=20, choices=PURCHASE_STATUS_CHOICES, default=PURCHASE_STATUS_CHOICES.PENDING)
+    status = models.CharField(verbose_name="Request Status", max_length=20, choices=PurchaseStatus.choices, default=PurchaseStatus.PENDING)
     proforma_invoice = models.FileField(verbose_name="Proforma Invoice File", upload_to="proforma/", null=True, blank=True)
     purchase_order = models.FileField(upload_to="purchase_orders/", null=True, blank=True)
     receipt = models.FileField(verbose_name="Receipt File", upload_to="receipts/", null=True, blank=True)
@@ -40,7 +40,7 @@ class ApprovalStep(models.Model):
     purchase_request = models.ForeignKey(PurchaseRequest, on_delete=models.CASCADE, related_name="approval_steps", verbose_name="Purchase Request")
     approver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="approved_requests", verbose_name="Approver")
     level = models.PositiveIntegerField(verbose_name="Approvel Level")  # 1, 2, 3…
-    status = models.CharField(max_length=20, choices=APPROVAL_CHOICES, verbose_name="Approval Status")
+    status = models.CharField(max_length=20, choices=ApprovalStatus.choices, verbose_name="Approval Status")
     comments = models.TextField(null=True, blank=True, verbose_name="Comments")
     created_at = models.DateTimeField(auto_now_add=True)
 

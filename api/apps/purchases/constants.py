@@ -11,9 +11,3 @@ class PurchaseStatus(models.TextChoices):
 class ApprovalStatus(models.TextChoices):
     APPROVED = "APPROVED", "Approved"
     REJECTED = "REJECTED", "Rejected"
-
-
-
-
-PURCHASE_STATUS_CHOICES = PurchaseStatus.choices
-APPROVAL_CHOICES = PurchaseStatus.choices
