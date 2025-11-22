@@ -9,7 +9,7 @@ def home(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('apps.auth.urls')),
+    path('auth/', include('apps.usr.urls')),
     path('purchases/', include('apps.purchases.urls')),
     path('', home, name='home'),
 ]
