@@ -36,28 +36,16 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 CORS_ALLOW_CREDENTIALS = True
 
 
-FRONTEND_PUBLIC_URL = os.getenv('FRONTEND_PUBLIC_URL')
-FRONTEND_STAFF_URL = os.getenv('FRONTEND_STAFF_URL')
-BACKEND_URL = os.getenv('BACKEND_URL')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
+CSRF_TRUSTED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 
-CSRF_TRUSTED_ORIGINS = [
-    FRONTEND_PUBLIC_URL,
-    FRONTEND_STAFF_URL,
-    BACKEND_URL,
+CORS_ALLOWED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
+
+CORS_ORIGIN_WHITELIST = [
+    url for url in os.getenv('CORS_ORIGIN_WHITELIST', '').split(',') if url
 ]
-
-CORS_ALLOWED_ORIGINS = [
-    FRONTEND_PUBLIC_URL,
-    FRONTEND_STAFF_URL,
-    BACKEND_URL,
-]
-
-# whitelisting frontend port
-CORS_ORIGIN_WHITELIST = os.getenv(
-    'CORS_ORIGIN_WHITELIST',
-    default=f"{FRONTEND_PUBLIC_URL},{FRONTEND_STAFF_URL},{BACKEND_URL}",
-).split(',')
 
 
 # Application definition
@@ -113,7 +101,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # user model
 AUTH_USER_MODEL = "usr.User"
-swappable = 'AUTH_USER_MODEL'
+# swappable = 'AUTH_USER_MODEL'
 
 
 

@@ -8,7 +8,7 @@ class User(AbstractUser):
     first_name = models.CharField(verbose_name="First Name", max_length=50, blank=False)
     last_name = models.CharField(verbose_name="Last Name", max_length=50, blank=False)
     email = models.EmailField(verbose_name="Email", max_length=255, unique=True, blank=False)
-    gender = models.CharField(max_length=15, choices=UserGender.choices, verbose_name="Gender")
+    gender = models.CharField(max_length=30, choices=UserGender.choices, verbose_name="Gender")
     role = models.CharField(max_length=30, choices=UserRole.choices, verbose_name="Role")
 
     is_active = models.BooleanField(default=True, verbose_name="Is Active")
