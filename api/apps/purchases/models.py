@@ -1,18 +1,20 @@
 from django.db import models
-from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.utils.safestring import mark_safe
+from django.core.validators import FileExtensionValidator
 from apps.purchases.constants import PurchaseStatus, ApprovalStatus
 
 
 
 class PurchaseRequest(models.Model):
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="purchase_requests", verbose_name="Requested By")
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="purchase_requests", verbose_name="Requested By")
     title = models.CharField(max_length=255, verbose_name="Purchase Title")
     description = models.TextField(verbose_name="Description...", blank=True, null=True)
     amount = models.DecimalField(verbose_name="Amount", max_digits=12, decimal_places=2)
     status = models.CharField(verbose_name="Request Status", max_length=20, choices=PurchaseStatus.choices, default=PurchaseStatus.PENDING)
-    proforma_invoice = models.FileField(verbose_name="Proforma Invoice File", upload_to="proforma/", null=True, blank=True)
-    purchase_order = models.FileField(upload_to="purchase_orders/", null=True, blank=True)
-    receipt = models.FileField(verbose_name="Receipt File", upload_to="receipts/", null=True, blank=True)
+    proforma_invoice = models.FileField(verbose_name="Proforma Invoice File", upload_to="proforma/", validators=[FileExtensionValidator(['png','jpg','jpeg', 'pdf', 'ppt', 'docx', 'xlsx'])], null=True, blank=True)
+    purchase_order = models.FileField(verbose_name="Purchase Order", upload_to="purchase_orders/", validators=[FileExtensionValidator(['png','jpg','jpeg', 'pdf', 'ppt', 'docx', 'xlsx'])], null=True, blank=True)
+    receipt = models.FileField(verbose_name="Receipt File", upload_to="receipts/", validators=[FileExtensionValidator(['png','jpg','jpeg', 'pdf', 'ppt', 'docx', 'xlsx'])], null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,7 +40,7 @@ class RequestItem(models.Model):
 
 class ApprovalStep(models.Model):
     purchase_request = models.ForeignKey(PurchaseRequest, on_delete=models.CASCADE, related_name="approval_steps", verbose_name="Purchase Request")
-    approver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="approved_requests", verbose_name="Approver")
+    approver = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="approved_requests", verbose_name="Approver")
     level = models.PositiveIntegerField(verbose_name="Approvel Level")  # 1, 2, 3…
     status = models.CharField(max_length=20, choices=ApprovalStatus.choices, verbose_name="Approval Status")
     comments = models.TextField(null=True, blank=True, verbose_name="Comments")
@@ -51,7 +53,7 @@ class ApprovalStep(models.Model):
 
 class FinanceNote(models.Model):
     purchase_request = models.ForeignKey( PurchaseRequest, on_delete=models.CASCADE, related_name="finance_notes", verbose_name="Purchase Request")
-    finance_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="finance_notes_created", verbose_name="Finance Officer")
+    finance_user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="finance_notes_created", verbose_name="Finance Officer")
     note = models.TextField(verbose_name="Finance Note", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
