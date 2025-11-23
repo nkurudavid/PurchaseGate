@@ -16,6 +16,9 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
 
     username = None
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["role", "first_name", "last_name"]
     
     objects = UserManager()
     
@@ -24,10 +27,4 @@ class User(AbstractUser):
         swappable = 'AUTH_USER_MODEL'
 
     def __str__(self):
-        return "{} {}".format(self.first_name, self.last_name)
-
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["role", "first_name", "last_name"]
-
-    def __str__(self):
-        return f"{self.full_name} ({self.role})"
+        return "{} {} - {}".format(self.first_name, self.last_name, self.role)
