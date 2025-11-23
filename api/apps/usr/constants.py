@@ -3,9 +3,7 @@ from django.db import models
 
 class UserRole(models.TextChoices):
     STAFF = "staff", "Staff"
-    APPROVER_LEVEL_1 = "approver_level_1", "Approver Level 1"
-    APPROVER_LEVEL_2 = "approver_level_2", "Approver Level 2"
-    APPROVER_LEVEL_3 = "approver_level_3", "Approver Level 3"
+    APPROVER = "approver", "Approver"
     FINANCE = "finance", "Finance Team"
     ADMIN = "admin", "Admin"
 
