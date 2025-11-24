@@ -5,7 +5,7 @@ from rest_framework import status, generics, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from api.apps.usr.serializers import (
+from apps.usr.serializers import (
     UserLoginSerializer,
     UserLogoutSerializer,
     UserSerializer,

@@ -7,16 +7,9 @@ class UserRole(models.TextChoices):
     FINANCE = "finance", "Finance Team"
     ADMIN = "admin", "Admin"
 
-ROLE_CHOICES = UserRole.choices
-
-
-
 
 class UserGender(models.TextChoices):
     MALE = "male", "Male"
     FEMALE = "female", "Female"
     OTHER = "other", "Other"
     PREFER_NOT_TO_SAY = "prefer_not_to_say", "Prefer not to say"
-
-GENDER_CHOICES = UserGender.choices
-    
