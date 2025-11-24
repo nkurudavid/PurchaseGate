@@ -4,6 +4,7 @@ from django.urls import path, include
 from django.shortcuts import render
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 
 
@@ -17,6 +18,10 @@ urlpatterns = [
     path('auth/', include('apps.usr.urls')),
     path('purchases/', include('apps.purchases.urls')),
     path('', home, name='home'),
+    
+    path('api/schema/file', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger_ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
