@@ -23,3 +23,10 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()
 if not settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+
+# Customize the admin site headers and titles
+admin.site.site_header = "PurchaseGate | Admin"
+admin.site.index_title = "Management"
+admin.site.site_title = "Control Panel"
