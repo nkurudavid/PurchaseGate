@@ -29,7 +29,7 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
 
 
 
-class LoginSerializer(serializers.Serializer):
+class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     role = serializers.ChoiceField(choices=get_user_model().ROLE_CHOICES)
@@ -67,7 +67,7 @@ class UserLogoutSerializer(serializers.Serializer):
 
 
 
-class ChangePasswordSerializer(serializers.Serializer):
+class UserChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     new_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
@@ -150,32 +150,32 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
-    password_confirmation = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
-    gender = serializers.ChoiceField(choices=[("", "Select Gender"), ("Male", "Male"), ("Female", "Female")], required=False)
+# class UserProfileSerializer(serializers.ModelSerializer):
+#     password = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+#     password_confirmation = serializers.CharField(write_only=True, required=False, style={'input_type': 'password'})
+#     gender = serializers.ChoiceField(choices=[("", "Select Gender"), ("Male", "Male"), ("Female", "Female")], required=False)
     
-    class Meta:
-        model = get_user_model()
-        fields = ['id', 'first_name', 'last_name', 'email', 'role', 'is_active', 'password', 'password_confirmation', 'profile', 'ssn', 'gender', 'address', 'phone', 'profilePicture']
-        extra_kwargs = {
-            'is_active': {'read_only': True, 'required': False},
-            'password': {'write_only': True, 'required': False},
-            'password_confirmation': {'write_only': True, 'required': False},
-        }
+#     class Meta:
+#         model = get_user_model()
+#         fields = ['id', 'first_name', 'last_name', 'email', 'role', 'is_active', 'password', 'password_confirmation', 'profile', 'ssn', 'gender', 'address', 'phone', 'profilePicture']
+#         extra_kwargs = {
+#             'is_active': {'read_only': True, 'required': False},
+#             'password': {'write_only': True, 'required': False},
+#             'password_confirmation': {'write_only': True, 'required': False},
+#         }
 
-    def validate_email(self, value):
-        user = self.context['request'].user
-        if get_user_model().objects.filter(email=value).exclude(id=user.id).exists():
-            raise serializers.ValidationError("This email address is already in use by another user.")
-        return value
+#     def validate_email(self, value):
+#         user = self.context['request'].user
+#         if get_user_model().objects.filter(email=value).exclude(id=user.id).exists():
+#             raise serializers.ValidationError("This email address is already in use by another user.")
+#         return value
 
-    def update(self, instance, validated_data):
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.email = validated_data.get('email', instance.email)
-        instance.save()
-        return instance
+#     def update(self, instance, validated_data):
+#         instance.first_name = validated_data.get('first_name', instance.first_name)
+#         instance.last_name = validated_data.get('last_name', instance.last_name)
+#         instance.email = validated_data.get('email', instance.email)
+#         instance.save()
+#         return instance
 
 
 

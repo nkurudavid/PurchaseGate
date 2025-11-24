@@ -15,6 +15,12 @@ from datetime import timedelta
 from pathlib import Path
 
 
+def env_bool(name, default=False):
+    """Convert .env string values to boolean."""
+    return str(os.getenv(name, str(default))).lower() in ("true", "1", "yes")
+
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,7 +34,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ["true", "1", "yes"]
+DEBUG = env_bool("DJANGO_DEBUG", default="True")
 
 # ALLOWED_HOSTS
 raw_hosts = os.getenv("DJANGO_ALLOWED_HOSTS", "")
@@ -173,3 +179,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+JWT_COOKIE_HTTPONLY = env_bool("JWT_COOKIE_HTTPONLY", default=True)
+JWT_COOKIE_SECURE = env_bool("JWT_COOKIE_SECURE", default=False)
