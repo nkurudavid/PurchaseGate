@@ -27,11 +27,11 @@ class FinanceNoteSerializer(serializers.ModelSerializer):
 
 # request items
 class RequestItemSerializer(serializers.ModelSerializer):
-    total_price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True, source="total_price")
+    # total_price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True, source="total_price")
      
     class Meta:
         model = RequestItem
-        fields = ["id", "item_name", "qty", "price", "total_price"]
+        fields = ["id", "item_name", "qty", "price"]
 
 
 
