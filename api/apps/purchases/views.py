@@ -17,7 +17,10 @@ from apps.purchases.serializers import (
 
 
 
-class StaffPurchaseRequestViewSet(viewsets.ModelViewSet):
+class StaffPurchaseRequestViewSet(viewsets.GenericViewSet,
+                         mixins.CreateModelMixin,
+                         mixins.UpdateModelMixin,
+                         mixins.DestroyModelMixin):
     permission_classes = [IsAuthenticated, IsStaffOfficer]
     serializer_class = PurchaseRequestSerializer
     def get_queryset(self):
@@ -31,20 +34,20 @@ class StaffPurchaseRequestViewSet(viewsets.ModelViewSet):
 
 
 
-class ApproverPurchaseRequestViewSet(viewsets.ReadOnlyModelViewSet):
+class ApproverPurchaseRequestViewSet(viewsets.GenericViewSet,
+                                        mixins.ListModelMixin,
+                                        mixins.RetrieveModelMixin):
     permission_classes = [IsAuthenticated, IsApprover]
     serializer_class = PurchaseRequestSerializer
     
     def get_queryset(self):
         return PurchaseRequest.objects.all()
-        # Filter purchase requests where the user is assigned as approver
-        # user = self.request.user
-        # return PurchaseRequest.objects.filter(approval_steps__approver=user).distinct()
 
 
 
-
-class FinancePurchaseRequestViewSet(viewsets.ModelViewSet):
+class FinancePurchaseRequestViewSet(viewsets.GenericViewSet,
+                                        mixins.ListModelMixin,
+                                        mixins.RetrieveModelMixin):
     permission_classes = [IsAuthenticated, IsFinanceOfficer]
     serializer_class = PurchaseRequestSerializer
 
@@ -59,17 +62,12 @@ class FinancePurchaseRequestViewSet(viewsets.ModelViewSet):
 
 
 
-class ApprovalStepViewSet(viewsets.GenericViewSet):
+class ApprovalStepViewSet(viewsets.GenericViewSet,
+                         mixins.CreateModelMixin):
     permission_classes = [IsAuthenticated]
     serializer_class = ApprovalStepSerializer
     queryset = ApprovalStep.objects.none()
 
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
     # --- APPROVE STEP ---
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
@@ -89,22 +87,6 @@ class ApprovalStepViewSet(viewsets.GenericViewSet):
         step.approver = request.user
         step.save()  # <-- SIGNAL will update PurchaseRequest immediately
         return Response({"message": "Step rejected"}, status=status.HTTP_200_OK)
-
-
-    # block all other methods
-    def list(self, request, *args, **kwargs):
-        return Response({"detail": "Not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response({"detail": "Not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def update(self, request, *args, **kwargs):
-        return Response({"detail": "Not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def destroy(self, request, *args, **kwargs):
-        return Response({"detail": "Not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
 
 
 class FinanceNoteViewSet(viewsets.GenericViewSet,
