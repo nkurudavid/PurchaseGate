@@ -1,10 +1,6 @@
 # Image selection
 FROM python:3.14-slim
 
-# Environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
 # Working directory
 WORKDIR /app
 
@@ -26,5 +22,7 @@ RUN pip install -r requirements.txt
 EXPOSE 8000
 
 
-# Run the Django development server
+# development
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# production,
+# CMD ["gunicorn", "procure.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
