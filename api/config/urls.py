@@ -15,8 +15,8 @@ def home(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('apps.usr.urls')),
-    path('purchases/', include('apps.purchases.urls')),
+    path('api/auth/', include('apps.usr.urls')),
+    path('api/purchases/', include('apps.purchases.urls')),
     path('', home, name='home'),
     
     path('api/schema/file', SpectacularAPIView.as_view(), name='schema'),
