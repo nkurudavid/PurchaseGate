@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.utils.translation import gettext_lazy as _
 from apps.usr.models import User
 
 
@@ -16,12 +15,21 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         ("Login Credentials", {"fields": ("email", "password")}),
         ("Personal Info", {"fields": ("first_name", "last_name", "gender")}),
-        ("Role & Permissions", {"fields": ("role", "is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        ("Important Dates", { "fields": ("last_login", "created_at")}),
+        ("Role & Permissions", {
+            "classes": ("collapse",),
+            "fields": ("role", "is_active", "is_staff", "is_superuser", "groups", "user_permissions")
+        }),
+        ("Important Dates", {"fields": ("last_login", "created_at")}),
     )
+
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
             "fields": ("first_name", "last_name", "gender", "role", "email", "password1", "password2"),
         }),
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # Editing an existing user >> email becomes read-only
+            return self.readonly_fields + ("email",)
+        return self.readonly_fields
