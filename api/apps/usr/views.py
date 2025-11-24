@@ -1,40 +1,22 @@
-import jwt, datetime
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import EmailMessage
-from django.shortcuts import get_object_or_404
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.contrib.auth import login, logout, get_user_model, update_session_auth_hash
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth import login, logout, update_session_auth_hash
 
 from rest_framework import status, generics, viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
 
 from api.apps.usr.serializers import (
     UserLoginSerializer,
     UserLogoutSerializer,
     UserSerializer,
-    UserDeleteSerializer,
     UserChangePasswordSerializer,
-    UserPasswordResetSerializer,
-    UserPasswordResetConfirmSerializer,
 )
-from api.apps.usr.permissions import (
-    IsApprover, 
-    IsFinanceOfficer, 
-    IsStaffOfficer
-)
-from apps.usr.utils import generate_jwt_token
+from apps.usr.utils import generate_jwt_token, get_user_from_token
 
 
 
 
-
-# Login View
+# UserLogin View
 class UserLoginView(generics.GenericAPIView):
     serializer_class = UserLoginSerializer
     permission_classes = [AllowAny]
@@ -68,7 +50,7 @@ class UserLoginView(generics.GenericAPIView):
 
 
 
-# Logout View
+# UserLogout View
 class UserLogoutView(generics.GenericAPIView):
     serializer_class = UserLogoutSerializer
     permission_classes = [IsAuthenticated]
@@ -84,3 +66,75 @@ class UserLogoutView(generics.GenericAPIView):
 
 
 
+# ChangePassword View
+class ChangePasswordView(generics.UpdateAPIView):
+    serializer_class = UserChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self): # Retrieve the user
+        return get_user_from_token(self.request)
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        if isinstance(user, Response):
+            return user
+
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            update_session_auth_hash(request, user)
+            return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# User Profile View
+class CurrentUserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = get_user_from_token(self.request)
+        if not user:
+            return Response({'message': 'Session ended. Please log in again.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return user
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True,      # Allows partial update
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "status": "success",
+                "message": "User profile updated successfully.",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "status": "error",
+            "message": "Profile update failed.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.delete()
+
+        response = Response({"message": "Account successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie("jwt")
+        logout(request)
+        
+        return response

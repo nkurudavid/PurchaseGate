@@ -1,8 +1,18 @@
 import datetime
 import jwt
+import logging
 from django.conf import settings
+from django.contrib.auth import get_user_model, logout
+from rest_framework.response import Response
+from rest_framework import status
 
 
+# Set up a logger for internal errors
+logger = logging.getLogger(__name__)
+
+
+
+# Utility function to generate JWT token
 def generate_jwt_token(user):
     payload = {
         "user_id": user.id,
@@ -10,5 +20,44 @@ def generate_jwt_token(user):
         "iat": datetime.datetime.utcnow(),
     }
 
+    # Encode the payload
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     return token
+
+
+# Utility function to get user from JWT token
+def get_user_from_token(request):
+    token = request.COOKIES.get('jwt')
+    
+    if not token:
+        logger.error('Authentication token not provided')
+        return None
+    
+    try:
+        # Decode the token
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user = get_user_model().objects.get(id=payload['user_id'])
+        return user
+    except jwt.ExpiredSignatureError:
+        return handle_session_expired(request)
+    except jwt.InvalidTokenError:
+        return handle_invalid_token()
+    except get_user_model().DoesNotExist:
+        logger.error('User not found') 
+        return None
+
+
+
+# Handle session expiration
+def handle_session_expired(request):
+    response = Response({'message': 'Session ended. Please log in again.'}, status=status.HTTP_401_UNAUTHORIZED)
+    response.delete_cookie('jwt')
+    logout(request)
+    return response
+
+
+
+# Handle invalid token
+def handle_invalid_token():
+    logger.error('Invalid token') 
+    return None
