@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from apps.usr.constants import UserRole
 from apps.usr.permissions import IsApprover, IsFinanceOfficer, IsStaffOfficer, IsNotAdmin
 from apps.purchases.models import PurchaseRequest, ApprovalStep, FinanceNote
 from apps.purchases.constants import PurchaseStatus, ApprovalStatus
@@ -17,54 +18,60 @@ from apps.purchases.serializers import (
 
 
 
-class StaffPurchaseRequestViewSet(viewsets.GenericViewSet,
-                         mixins.CreateModelMixin,
-                         mixins.UpdateModelMixin,
-                         mixins.DestroyModelMixin):
-    permission_classes = [IsAuthenticated, IsStaffOfficer]
-    serializer_class = PurchaseRequestSerializer
+class PurchaseRequestViewSet(viewsets.GenericViewSet,
+                             mixins.CreateModelMixin,
+                             mixins.UpdateModelMixin,
+                             mixins.DestroyModelMixin,
+                             mixins.ListModelMixin,
+                             mixins.RetrieveModelMixin):
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
-        return PurchaseRequest.objects.filter(created_by=self.request.user)
+        user = self.request.user
+        role = getattr(user, "role", None)
+
+        if role == UserRole.STAFF:
+            return PurchaseRequest.objects.filter(created_by=user)
+        elif role == UserRole.APPROVER:
+            return PurchaseRequest.objects.all()
+        elif role == UserRole.FINANCE:
+            return PurchaseRequest.objects.filter(status=ApprovalStatus.APPROVED)
+        return PurchaseRequest.objects.none()
 
     def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update"]:
-            return PurchaseRequestCreateSerializer
+        user = self.request.user
+        role = getattr(user, "role", None)
+
+        if role == UserRole.STAFF:
+            if self.action in ["create", "update", "partial_update"]:
+                return PurchaseRequestCreateSerializer
+            return PurchaseRequestSerializer
+        elif role == UserRole.FINANCE:
+            if self.action in ["update", "partial_update"]:
+                return FinanceUpdateSerializer
+            return PurchaseRequestSerializer
+        elif role == UserRole.APPROVER:
+            return PurchaseRequestSerializer
+
         return PurchaseRequestSerializer
 
+    def get_permissions(self):
+        role_permission_map = {
+            UserRole.STAFF: [IsStaffOfficer],
+            UserRole.APPROVER: [IsApprover],
+            UserRole.FINANCE: [IsFinanceOfficer],
+        }
 
-
-
-class ApproverPurchaseRequestViewSet(viewsets.GenericViewSet,
-                                        mixins.ListModelMixin,
-                                        mixins.RetrieveModelMixin):
-    permission_classes = [IsAuthenticated, IsApprover]
-    serializer_class = PurchaseRequestSerializer
-    
-    def get_queryset(self):
-        return PurchaseRequest.objects.all()
-
-
-
-class FinancePurchaseRequestViewSet(viewsets.GenericViewSet,
-                                        mixins.ListModelMixin,
-                                        mixins.RetrieveModelMixin):
-    permission_classes = [IsAuthenticated, IsFinanceOfficer]
-    serializer_class = PurchaseRequestSerializer
-
-    def get_queryset(self):
-        return PurchaseRequest.objects.filter(status=ApprovalStatus.APPROVED)
-
-    def get_serializer_class(self):
-        if self.action in ["update", "partial_update"]:
-            return FinanceUpdateSerializer
-        return PurchaseRequestSerializer
+        user_role = getattr(self.request.user, "role", None)
+        self.permission_classes = [IsAuthenticated] + role_permission_map.get(user_role, [])
+        return super().get_permissions()
 
 
 
 
 class ApprovalStepViewSet(viewsets.GenericViewSet,
                          mixins.CreateModelMixin):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsApprover]
     serializer_class = ApprovalStepSerializer
     queryset = ApprovalStep.objects.none()
 

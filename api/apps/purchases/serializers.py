@@ -41,7 +41,7 @@ class PurchaseRequestCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PurchaseRequest
-        fields = ["id", "title", "description", "amount", "required_approval_levels", "proforma_invoice", "items",]
+        fields = ["id", "title", "description", "amount", "proforma_invoice", "items",]
 
     def create(self, validated_data):
         items_data = validated_data.pop("items")
@@ -94,6 +94,7 @@ class PurchaseRequestSerializer(serializers.ModelSerializer):
             "approval_steps",
             "finance_notes",
         ]
+        read_only_fields = fields
 
 
 
