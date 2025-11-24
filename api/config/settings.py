@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     
     # third-party
     "rest_framework",
+    'drf_spectacular',
     "corsheaders",
     
     # local
@@ -185,3 +186,41 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 JWT_COOKIE_HTTPONLY = env_bool("JWT_COOKIE_HTTPONLY", default=True)
 JWT_COOKIE_SECURE = env_bool("JWT_COOKIE_SECURE", default=False)
+
+
+# Django REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'apps.usr.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PurchaseGate API',
+    'DESCRIPTION': 'API documentation for PurchaseGate application',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': '/api',
+    'COMPONENT_SPLIT_REQUEST': True, 
+    'SCHEMA_COERCE_METHOD_NAMES': { 
+        'Retrieve': 'Fetch',
+        'List': 'ListAll',
+        'Create': 'Add',
+        'Update': 'Modify',
+        'Partial_update': 'Patch',
+        'Destroy': 'Delete',
+    },
+    'SORT_OPERATIONS': False,
+    'SORT_SCHEMA_COMPONENTS': True,
+    'SERVE_AUTHENTICATION': ['rest_framework.authentication.BasicAuthentication', 'rest_framework.authentication.SessionAuthentication'],
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'ENABLE_FILE_UPLOADS': True,
+}
