@@ -12,7 +12,7 @@ from apps.usr.serializers import (
     UserChangePasswordSerializer,
 )
 from apps.usr.utils import generate_jwt_token, get_user_from_token
-
+from apps.usr.permissions import IsNotAdmin
 
 
 
@@ -53,7 +53,7 @@ class UserLoginView(generics.GenericAPIView):
 # UserLogout View
 class UserLogoutView(generics.GenericAPIView):
     serializer_class = UserLogoutSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotAdmin]
     
     def post(self, request, *args, **kwargs):
         response = Response(status=status.HTTP_200_OK) 
@@ -69,7 +69,7 @@ class UserLogoutView(generics.GenericAPIView):
 # ChangePassword View
 class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = UserChangePasswordSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotAdmin]
 
     def get_object(self): # Retrieve the user
         return get_user_from_token(self.request)
@@ -93,13 +93,10 @@ class ChangePasswordView(generics.UpdateAPIView):
 # User Profile View
 class CurrentUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotAdmin]
 
     def get_object(self):
-        user = get_user_from_token(self.request)
-        if not user:
-            return Response({'message': 'Session ended. Please log in again.'}, status=status.HTTP_401_UNAUTHORIZED)
-        return user
+        return get_user_from_token(self.request)
 
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
@@ -132,9 +129,8 @@ class CurrentUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
         user.delete()
+        logout(request)
 
         response = Response({"message": "Account successfully deleted."}, status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie("jwt")
-        logout(request)
-        
         return response

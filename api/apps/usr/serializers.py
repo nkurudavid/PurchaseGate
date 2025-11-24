@@ -52,6 +52,9 @@ class UserLoginSerializer(serializers.Serializer):
 
         if not user.check_password(password):
             raise serializers.ValidationError({'message': 'Incorrect password!'})
+        
+        if user.is_superuser:
+            raise serializers.ValidationError({'message': 'Access denied!'})
 
         user = authenticate(email=email, password=password)
         

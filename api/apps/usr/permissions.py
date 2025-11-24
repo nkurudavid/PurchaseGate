@@ -1,5 +1,5 @@
 from rest_framework.permissions import BasePermission
-from api.apps.usr.constants import UserRole
+from apps.usr.constants import UserRole
 
 
 
@@ -14,3 +14,7 @@ class IsApprover(BasePermission):
 class IsFinanceOfficer(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == UserRole.FINANCE
+
+class IsNotAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and not request.user.is_superuser
