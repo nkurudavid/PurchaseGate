@@ -69,7 +69,7 @@ class PurchaseRequestCreateSerializer(serializers.ModelSerializer):
 
 
 # read-only views with all details
-class PurchaseRequestDetailSerializer(serializers.ModelSerializer):
+class PurchaseRequestSerializer(serializers.ModelSerializer):
     items = RequestItemSerializer(many=True, read_only=True)
     approval_steps = ApprovalStepSerializer(many=True, read_only=True)
     finance_notes = FinanceNoteSerializer(many=True, read_only=True)
