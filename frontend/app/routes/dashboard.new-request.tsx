@@ -1,7 +1,6 @@
 // frontend/app/routes/dashboard.new-request.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function NewRequest() {
   const navigate = useNavigate();
@@ -43,7 +42,7 @@ export default function NewRequest() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="max-w-4xl">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">New Purchase Request</h2>
@@ -196,6 +195,6 @@ export default function NewRequest() {
           </form>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 // frontend/app/routes/dashboard.all-requests.tsx
 import { useState } from 'react';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function AllRequests() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +50,7 @@ export default function AllRequests() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div>
         {/* Header */}
         <div className="mb-6">
@@ -220,6 +219,6 @@ export default function AllRequests() {
           </button>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

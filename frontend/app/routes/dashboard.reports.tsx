@@ -1,6 +1,5 @@
 // frontend/app/routes/dashboard.reports.tsx
 import { useState } from 'react';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function Reports() {
   const [reportType, setReportType] = useState('summary');
@@ -40,7 +39,7 @@ export default function Reports() {
   const approvalRate = ((totalApproved / totalRequests) * 100).toFixed(1);
 
   return (
-    <DashboardLayout>
+    <>
       <div>
         {/* Header */}
         <div className="mb-6">
@@ -236,6 +235,6 @@ export default function Reports() {
           </button>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

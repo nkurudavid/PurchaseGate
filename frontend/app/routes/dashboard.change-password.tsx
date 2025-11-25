@@ -1,6 +1,5 @@
 // frontend/app/routes/dashboard.change-password.tsx
 import { useState } from 'react';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function ChangePassword() {
   const [formData, setFormData] = useState({
@@ -54,8 +53,8 @@ export default function ChangePassword() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="max-w-2xl">
+    <>
+      <div className="max-w-2xl m-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Change Password</h2>
 
@@ -147,6 +146,6 @@ export default function ChangePassword() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

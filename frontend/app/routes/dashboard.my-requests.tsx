@@ -1,7 +1,6 @@
 // frontend/app/routes/dashboard.my-requests.tsx
 import { useState } from 'react';
 import { Link } from 'react-router';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function MyRequests() {
   const [filter, setFilter] = useState('all');
@@ -78,7 +77,7 @@ export default function MyRequests() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -233,6 +232,6 @@ export default function MyRequests() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

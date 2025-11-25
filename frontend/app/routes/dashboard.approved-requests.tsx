@@ -1,7 +1,6 @@
 // frontend/app/routes/dashboard.approved-requests.tsx
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import DashboardLayout from '../components/DashboardLayout';
 
 interface Request {
   id: string;
@@ -103,7 +102,7 @@ export default function ApprovedRequests() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div>
         {/* Header */}
         <div className="mb-6">
@@ -247,6 +246,6 @@ export default function ApprovedRequests() {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 // frontend/app/routes/dashboard.profile.tsx
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -21,7 +20,7 @@ export default function Profile() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="max-w-4xl">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           {/* Profile Header */}
@@ -153,6 +152,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
