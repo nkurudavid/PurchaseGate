@@ -16,6 +16,6 @@ export default [
     route('reports', 'routes/dashboard.reports.tsx'),
   ]),
   
-  // Catch-all 404 route (optional)
-  // route('*', 'routes/not-found.tsx'),
+  // Catch-all 404 route
+  route('*', 'routes/not-found.tsx'),
 ] satisfies RouteConfig;
