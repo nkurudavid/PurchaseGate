@@ -46,10 +46,12 @@ class PurchaseRequestViewSet(viewsets.GenericViewSet,
             if self.action in ["create", "update", "partial_update"]:
                 return PurchaseRequestCreateSerializer
             return PurchaseRequestSerializer
+
         elif role == UserRole.FINANCE:
             if self.action in ["update", "partial_update"]:
                 return FinanceUpdateSerializer
             return PurchaseRequestSerializer
+
         elif role == UserRole.APPROVER:
             return PurchaseRequestSerializer
 
@@ -61,39 +63,54 @@ class PurchaseRequestViewSet(viewsets.GenericViewSet,
             UserRole.APPROVER: [IsApprover],
             UserRole.FINANCE: [IsFinanceOfficer],
         }
-
         user_role = getattr(self.request.user, "role", None)
         self.permission_classes = [IsAuthenticated] + role_permission_map.get(user_role, [])
         return super().get_permissions()
 
-
-
-
-class ApprovalStepViewSet(viewsets.GenericViewSet,
-                         mixins.CreateModelMixin):
-    permission_classes = [IsAuthenticated, IsApprover]
-    serializer_class = ApprovalStepSerializer
-    queryset = ApprovalStep.objects.none()
-
-    # --- APPROVE STEP ---
-    @action(detail=True, methods=["post"])
+    # ----------------- APPROVER ACTIONS -----------------
+    @action(detail=True, methods=["patch"], permission_classes=[IsAuthenticated, IsApprover])
     def approve(self, request, pk=None):
-        step = self.get_object()
-        step.status = "APPROVED"
-        step.comments = request.data.get("comments", "")
-        step.approver = request.user
-        step.save()  # <-- SIGNAL will update PurchaseRequest
-        return Response({"message": "Step approved"}, status=status.HTTP_200_OK)
+        purchase_request = self.get_object()
 
-    # --- REJECT STEP ---
-    @action(detail=True, methods=["post"])
+        # Determine next approval level
+        last_step = purchase_request.approval_steps.order_by("-level").first()
+        next_level = (last_step.level + 1) if last_step else 1
+
+        # Prevent exceeding required approval levels
+        if next_level > purchase_request.required_approval_levels:
+            return Response(
+                {"error": "Maximum approval levels already reached."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ApprovalStep.objects.create(
+            purchase_request=purchase_request,
+            approver=request.user,
+            status=ApprovalStatus.APPROVED,
+            comments=request.data.get("comments", ""),
+            level=next_level
+        )
+
+        return Response({"message": "Request approved"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["patch"], permission_classes=[IsAuthenticated, IsApprover])
     def reject(self, request, pk=None):
-        step = self.get_object()
-        step.status = "REJECTED"
-        step.comments = request.data.get("comments", "")
-        step.approver = request.user
-        step.save()  # <-- SIGNAL will update PurchaseRequest immediately
-        return Response({"message": "Step rejected"}, status=status.HTTP_200_OK)
+        purchase_request = self.get_object()
+
+        last_step = purchase_request.approval_steps.order_by("-level").first()
+        next_level = (last_step.level + 1) if last_step else 1
+
+        ApprovalStep.objects.create(
+            purchase_request=purchase_request,
+            approver=request.user,
+            status=ApprovalStatus.REJECTED,
+            comments=request.data.get("comments", ""),
+            level=next_level
+        )
+
+        return Response({"message": "Request rejected"}, status=status.HTTP_200_OK)
+
+
 
 
 class FinanceNoteViewSet(viewsets.GenericViewSet,
