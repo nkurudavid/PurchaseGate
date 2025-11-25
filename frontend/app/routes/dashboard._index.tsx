@@ -53,7 +53,7 @@ export default function DashboardHome() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">
-          Welcome back, {user?.username}! 👋
+          Welcome back, {user?.first_name}! 👋
         </h1>
         <p className="text-gray-600 mt-2">
           Here's what's happening with your purchase requests today.

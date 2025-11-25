@@ -133,10 +133,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="flex items-center space-x-3 hover:bg-gray-100 rounded-lg px-3 py-2 transition-colors"
             >
               <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">
-                {user?.username?.charAt(0).toUpperCase()}
+                {user?.first_name?.charAt(0).toUpperCase()}
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-sm font-medium text-gray-700">{user?.username}</p>
+                <p className="text-sm font-medium text-gray-700">{user?.first_name}</p>
                 <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
               <span className="text-gray-400">▼</span>
