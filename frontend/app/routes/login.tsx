@@ -37,14 +37,25 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-gray-100 flex items-center justify-center p-4">
+      {/* Back to Home Button */}
+      <Link 
+        to="/" 
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition-colors"
+      >
+        <span className="text-xl">←</span>
+        <span>Back to Home</span>
+      </Link>
+
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
-            <span className="text-3xl">🛒</span>
-          </div>
+          <Link to="/" className="inline-block">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4 hover:bg-green-700 transition-colors">
+              <span className="text-3xl">🛒</span>
+            </div>
+          </Link>
           <h1 className="text-3xl font-bold text-gray-800">PurchaseGate</h1>
-          <p className="text-gray-600 mt-2">Purchase Request Management System</p>
+          <p className="text-gray-600 mt-2">Purchase Request & Approval System</p>
         </div>
 
         {/* Login Card */}
@@ -138,12 +149,6 @@ export default function Login() {
             </a>
           </div>
 
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-green-600 hover:text-green-700 font-medium">
-              Contact Administrator
-            </Link>
-          </div>
         </div>
 
         {/* Footer */}

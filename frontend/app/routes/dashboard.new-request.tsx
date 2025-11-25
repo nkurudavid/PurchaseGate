@@ -43,7 +43,7 @@ export default function NewRequest() {
 
   return (
     <>
-      <div className="max-w-4xl">
+      <div className="max-w-4xl m-auto">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">New Purchase Request</h2>
 

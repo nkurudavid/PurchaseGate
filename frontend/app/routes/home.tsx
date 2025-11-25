@@ -15,13 +15,13 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-gray-50">
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-6 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-22">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">🛒</span>
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-800">PurchaseGate</span>
+              <span className="ml-3 text-2xl font-bold text-gray-800">PurchaseGate</span>
             </div>
             <div className="flex items-center gap-4">
               <Link
@@ -44,7 +44,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl font-bold text-gray-900 my-10">
             Streamline Your Purchase
             <span className="text-green-600"> Request Process</span>
           </h1>
@@ -84,16 +84,15 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* Features Section */}
       <div id="features" className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Everything You Need</h2>
-            <p className="text-xl text-gray-600">Powerful features to manage your purchase requests efficiently</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Key Features</h2>
+            <p className="text-xl text-gray-600">Everything you need to manage purchase requests</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Feature 1 */}
             <div className="p-6 bg-gray-50 rounded-xl hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
@@ -101,7 +100,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Easy Submission</h3>
               <p className="text-gray-600">
-                Submit purchase requests in seconds with our intuitive form. Attach documents and track status in real-time.
+                Submit and track purchase requests in seconds with real-time status updates.
               </p>
             </div>
 
@@ -110,9 +109,9 @@ export default function Home() {
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <span className="text-2xl">✅</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Multi-Level Approval</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Smart Approvals</h3>
               <p className="text-gray-600">
-                Configure custom approval workflows based on amount, department, or item category.
+                Multi-level approval workflows with automated routing and notifications.
               </p>
             </div>
 
@@ -121,42 +120,20 @@ export default function Home() {
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <span className="text-2xl">📊</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Real-Time Reporting</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Real-Time Reports</h3>
               <p className="text-gray-600">
-                Generate comprehensive reports and gain insights into spending patterns and trends.
+                Comprehensive analytics and insights into spending patterns and trends.
               </p>
             </div>
 
             {/* Feature 4 */}
             <div className="p-6 bg-gray-50 rounded-xl hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">🔔</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Smart Notifications</h3>
-              <p className="text-gray-600">
-                Stay updated with email and in-app notifications for pending approvals and status changes.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="p-6 bg-gray-50 rounded-xl hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <span className="text-2xl">🔒</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure & Compliant</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure</h3>
               <p className="text-gray-600">
-                Enterprise-grade security with role-based access control and audit trails.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="p-6 bg-gray-50 rounded-xl hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-2xl">📱</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Mobile Ready</h3>
-              <p className="text-gray-600">
-                Access PurchaseGate from any device. Approve requests on-the-go with our responsive design.
+                Enterprise security with role-based access.
               </p>
             </div>
           </div>
@@ -233,50 +210,24 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                  <span className="text-xl">🛒</span>
-                </div>
-                <span className="ml-2 text-lg font-bold">PurchaseGate</span>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Logo & Tagline */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                <span className="text-xl">🛒</span>
               </div>
-              <p className="text-gray-400 text-sm">
-                Streamlining purchase requests for modern organizations.
-              </p>
+              <div>
+                <span className="font-bold">PurchaseGate</span>
+                <p className="text-gray-400 text-xs">Smart Purchase Management</p>
+              </div>
             </div>
 
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2025 PurchaseGate. All rights reserved.</p>
+            {/* Copyright */}
+            <p className="text-gray-400 text-sm">
+              &copy; 2025 PurchaseGate. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
