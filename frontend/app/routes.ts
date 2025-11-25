@@ -8,6 +8,7 @@ export default [
   route('dashboard', 'routes/dashboard.tsx', [
     index('routes/dashboard._index.tsx'),
     route('profile', 'routes/dashboard.profile.tsx'),
+    route('change-password', 'routes/dashboard.change-password.tsx'),
     route('new-request', 'routes/dashboard.new-request.tsx'),
     route('my-requests', 'routes/dashboard.my-requests.tsx'),
     route('pending-requests', 'routes/dashboard.pending-requests.tsx'),
