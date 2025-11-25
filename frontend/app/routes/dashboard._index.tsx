@@ -1,25 +1,38 @@
 // frontend/app/routes/dashboard._index.tsx
 import { useAuth } from '../contexts/AuthContext';
-import DashboardLayout from '../components/DashboardLayout';
 
 export default function DashboardHome() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  // Wait for auth to load to prevent hydration mismatch
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isStaff = user?.role === 'staff';
 
   const stats = [
     { 
-      label: user?.role === 'staff' ? 'My Requests' : 'Pending Requests', 
+      label: isStaff ? 'My Requests' : 'Pending Requests', 
       value: '12', 
       icon: '📝',
       color: 'bg-blue-500'
     },
     { 
-      label: user?.role === 'staff' ? 'Approved' : 'Approved Today', 
+      label: isStaff ? 'Approved' : 'Approved Today', 
       value: '8', 
       icon: '✅',
       color: 'bg-green-500'
     },
     { 
-      label: user?.role === 'staff' ? 'Pending' : 'Rejected', 
+      label: isStaff ? 'Pending' : 'Rejected', 
       value: '4', 
       icon: '⏳',
       color: 'bg-yellow-500'
@@ -49,11 +62,11 @@ export default function DashboardHome() {
   };
 
   return (
-    <DashboardLayout>
+    <>
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">
-          Welcome back, {user?.first_name}! 👋
+          Welcome back, {user?.first_name || 'User'}! 👋
         </h1>
         <p className="text-gray-600 mt-2">
           Here's what's happening with your purchase requests today.
@@ -137,6 +150,6 @@ export default function DashboardHome() {
           </table>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

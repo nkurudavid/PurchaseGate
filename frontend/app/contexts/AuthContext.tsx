@@ -28,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Try to fetch user data on mount (cookie will be sent automatically)
     fetchUser();
   }, []);
 
@@ -37,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await apiRequest<User>(API_ENDPOINTS.user);
       setUser(userData);
     } catch (error) {
-      console.error('Failed to fetch user:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -45,42 +43,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string, role: string) => {
+    const response = await apiRequest<{ 
+      message: string;
+      token: string;
+    }>(API_ENDPOINTS.login, {
+      method: 'POST',
+      body: JSON.stringify({ email, password, role }),
+      skipAuth: true,
+    });
+
     try {
-      const response = await apiRequest<{ 
-        message: string;
-        token: string;
-      }>(API_ENDPOINTS.login, {
-        method: 'POST',
-        body: JSON.stringify({ email, password, role }),
-        skipAuth: true,
-      });
-
-      // Store token in localStorage as backup (optional)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('token', response.token);
-      }
-
-      // Fetch user data after successful login
-      await fetchUser();
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+      localStorage.setItem('token', response.token);
+    } catch (e) {
+      // Ignore
     }
+
+    await fetchUser();
   };
 
   const logout = async () => {
     try {
-      await apiRequest(API_ENDPOINTS.logout, {
-        method: 'POST',
-      });
+      await apiRequest(API_ENDPOINTS.logout, { method: 'POST' });
     } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-      }
-      setUser(null);
+      // Ignore
     }
+    
+    try {
+      localStorage.removeItem('token');
+    } catch (e) {
+      // Ignore
+    }
+    
+    setUser(null);
   };
 
   return (

@@ -1,8 +1,9 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
+import type { ReactNode } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import './app.css';
 
-export default function Root() {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -12,12 +13,18 @@ export default function Root() {
         <Links />
       </head>
       <body>
-        <AuthProvider>
-          <Outlet />
-        </AuthProvider>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export default function Root() {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
   );
 }
