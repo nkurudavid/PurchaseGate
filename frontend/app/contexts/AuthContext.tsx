@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { apiRequest } from '../config/api';
 import { API_ENDPOINTS } from '../config/endpoints';
 
@@ -6,68 +7,91 @@ interface User {
   id: number;
   email: string;
   username: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string, role: string) => Promise<void>;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem('token')
-  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      // Verify token and fetch user data
-      fetchUser();
-    } else {
-      setIsLoading(false);
-    }
-  }, [token]);
+    // Try to fetch user data on mount (cookie will be sent automatically)
+    fetchUser();
+  }, []);
 
   const fetchUser = async () => {
     try {
-      const userData = await apiRequest<User>('/auth/me/', { token: token! });
+      const userData = await apiRequest<User>(API_ENDPOINTS.user);
       setUser(userData);
     } catch (error) {
-      localStorage.removeItem('token');
-      setToken(null);
+      console.error('Failed to fetch user:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string) => {
-    const response = await apiRequest<{ token: string; user: User }>(
-      API_ENDPOINTS.login,
-      {
+  const login = async (email: string, password: string, role: string) => {
+    try {
+      const response = await apiRequest<{ 
+        message: string;
+        token: string;
+      }>(API_ENDPOINTS.login, {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }),
+        skipAuth: true,
+      });
+
+      // Store token in localStorage as backup (optional)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', response.token);
       }
-    );
-    
-    localStorage.setItem('token', response.token);
-    setToken(response.token);
-    setUser(response.user);
+
+      // Fetch user data after successful login
+      await fetchUser();
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await apiRequest(API_ENDPOINTS.logout, {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+      }
+      setUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        login, 
+        logout, 
+        isLoading,
+        isAuthenticated: !!user 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

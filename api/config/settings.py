@@ -46,7 +46,7 @@ ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 CSRF_TRUSTED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
