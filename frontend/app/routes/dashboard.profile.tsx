@@ -21,7 +21,7 @@ export default function Profile() {
 
   return (
     <>
-      <div className="max-w-4xl">
+      <div className="max-w-4xl m-auto">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-6">
