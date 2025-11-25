@@ -28,7 +28,7 @@ export default function Navigation() {
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
         {isAuthenticated ? (
           <>
-            <span>Welcome, {user?.username}</span>
+            <span>Welcome, {user?.first_name}</span>
             <Link to="/dashboard">Dashboard</Link>
             <button
               onClick={handleLogout}

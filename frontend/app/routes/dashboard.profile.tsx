@@ -28,10 +28,10 @@ export default function Profile() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
-                {user?.username?.charAt(0).toUpperCase()}
+                {user?.first_name?.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">{user?.username}</h2>
+                <h2 className="text-2xl font-bold text-gray-800">{user?.first_name}</h2>
                 <p className="text-gray-600 capitalize">{user?.role}</p>
               </div>
             </div>
@@ -137,8 +137,8 @@ export default function Profile() {
               <span className="font-medium text-gray-800">{user?.id}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-600">Username:</span>
-              <span className="font-medium text-gray-800">{user?.username}</span>
+              <span className="text-gray-600">Full name:</span>
+              <span className="font-medium text-gray-800">{user?.first_name} {user?.last_name}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-200">
               <span className="text-gray-600">Role:</span>

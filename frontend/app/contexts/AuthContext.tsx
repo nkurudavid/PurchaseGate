@@ -6,9 +6,10 @@ import { API_ENDPOINTS } from '../config/endpoints';
 interface User {
   id: number;
   email: string;
-  username: string;
   first_name?: string;
   last_name?: string;
+  gender?: string;
+  is_active?: boolean;
   role?: string;
 }
 
