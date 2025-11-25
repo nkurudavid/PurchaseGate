@@ -136,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {user?.first_name?.charAt(0).toUpperCase()}
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-sm font-medium text-gray-700">{user?.first_name}</p>
+                <p className="text-sm font-medium text-gray-700">{user?.first_name} {user?.last_name}</p>
                 <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
               <span className="text-gray-400">▼</span>
