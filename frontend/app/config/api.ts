@@ -1,24 +1,30 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+import API_BASE_URL from './endpoints';
 
-export const API_ENDPOINTS = {
-  // Auth endpoints
-  login: `${API_BASE_URL}/api/auth/login/`,
-  logout: `${API_BASE_URL}/api/auth/logout/`,
-  my_profile: `${API_BASE_URL}/api/auth/me/`,
-  update_profile: `${API_BASE_URL}/api/auth/me/`,
-  delete_account: `${API_BASE_URL}/api/auth/me/`,
-  change_password: `${API_BASE_URL}/api/auth/me/change_password/`,
+interface RequestOptions extends RequestInit {
+  token?: string;
+}
+
+export async function apiRequest<T>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const { token, ...fetchOptions } = options;
   
-  // Add your other endpoints
-  staff_requests: `${API_BASE_URL}/api/purchases/requests/`,
-  update_my_request: `${API_BASE_URL}/api/purchases/requests/{id}/`,
-  delete_my_request: `${API_BASE_URL}/api/purchases/requests/{id}/`,
-  create_request: `${API_BASE_URL}/api/purchases/requests/`,
-  approve_request: `${API_BASE_URL}/api/purchases/requests/{id}/approve/`,
-  reject_request: `${API_BASE_URL}/api/purchases/requests/{id}/reject/`,
-  add_finance_note: `${API_BASE_URL}/api/purchases/requests/{id}/finance_note/`,
-  update_finance_note: `${API_BASE_URL}/api/purchases/requests/{id}/finance_note/`,
-  delete_finance_note: `${API_BASE_URL}/api/purchases/requests/{id}/finance_note/`,
-};
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...fetchOptions.headers,
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
 
-export default API_BASE_URL;
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...fetchOptions,
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || 'API request failed');
+  }
+
+  return response.json();
+}
