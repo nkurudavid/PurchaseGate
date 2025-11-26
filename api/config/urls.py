@@ -14,24 +14,30 @@ def home(request):
 
 
 urlpatterns = [
+    # Admin
     path('admin/', admin.site.urls),
+
+    # API Endpoints
     path('api/auth/', include('apps.usr.urls')),
     path('api/purchases/', include('apps.purchases.urls')),
-    path('', home, name='home'),
-    
+
+    # API Schema / Docs
     path('api/schema/file', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger_ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # React frontend catch-all
+    path('', home, name='home'),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += staticfiles_urlpatterns()
-if not settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
-
-# Customize the admin site headers and titles
+# --------------------
+# Admin site customization
+# --------------------
 admin.site.site_header = "PurchaseGate | Admin"
 admin.site.index_title = "Management"
 admin.site.site_title = "Control Panel"
