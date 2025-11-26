@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   
   // Add your other endpoints
   staff_requests: `${API_BASE_URL}/purchases/requests/`,
+  request_details: `${API_BASE_URL}/purchases/requests/{id}/`,
   update_my_request: `${API_BASE_URL}/purchases/requests/{id}/`,
   delete_my_request: `${API_BASE_URL}/purchases/requests/{id}/`,
   create_request: `${API_BASE_URL}/purchases/requests/`,

@@ -2,44 +2,51 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 
-interface Request {
-  id: string;
+interface Item {
+  id: number;
   item_name: string;
+  qty: number;
+  price: string;
+}
+
+interface ApprovalStep {
+  id: number;
+  approver: number;
+  approver_name: string;
+  level: number;
+  status: 'APPROVED' | 'REJECTED' | 'PENDING';
+  comments: string;
+  created_at: string;
+}
+
+interface RequestDetail {
+  id: number;
+  title: string;
   description: string;
-  quantity: number;
-  unit_price: number;
-  total_amount: number;
-  vendor: string;
-  urgency: string;
-  justification: string;
-  status: string;
-  requested_by: {
-    name: string;
-    email: string;
-    department: string;
-  };
-  request_date: string;
-  approved_by?: string;
-  approval_date?: string;
-  approval_comment?: string;
-  rejected_by?: string;
-  rejection_date?: string;
-  rejection_reason?: string;
-  finance_notes?: string;
-  attachments?: string[];
+  amount: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  required_approval_levels: number;
+  proforma_invoice: string | null;
+  purchase_order: string | null;
+  receipt: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by_name: string;
+  items: Item[];
+  approval_steps: ApprovalStep[];
+  finance_notes: string | null;
 }
 
 export default function RequestDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
-  const [request, setRequest] = useState<Request | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { fetchRequestDetails, requestDetails, isLoadingRequestDetails, approveRequest, rejectRequest } = useData();
   
   // Approver Form State
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
+  const [approvalAction, setApprovalAction] = useState<'APPROVED' | 'REJECTED' | null>(null);
   const [approvalComment, setApprovalComment] = useState('');
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
   
@@ -49,59 +56,39 @@ export default function RequestDetail() {
   const [isSubmittingFinance, setIsSubmittingFinance] = useState(false);
 
   useEffect(() => {
-    fetchRequestDetails();
+    if (id) {
+      fetchRequestDetails(parseInt(id));
+    }
   }, [id]);
 
-  const fetchRequestDetails = async () => {
-    try {
-      // Replace with actual API call
-      // const data = await apiRequest(`/api/requests/${id}/`);
-      
-      // Mock data
-      const mockRequest: Request = {
-        id: 'REQ-001',
-        item_name: 'Dell Laptop XPS 15',
-        description: 'High-performance laptop for software development. Specifications: Intel i7, 32GB RAM, 1TB SSD, 15.6" 4K display.',
-        quantity: 2,
-        unit_price: 1200,
-        total_amount: 2400,
-        vendor: 'Dell Official Store',
-        urgency: 'high',
-        justification: 'New developers joining the team require laptops for their work. Current inventory is depleted and these are needed urgently for onboarding next week.',
-        status: 'approved',
-        requested_by: {
-          name: 'John Smith',
-          email: 'john.smith@company.com',
-          department: 'Engineering',
-        },
-        request_date: '2025-11-20T10:30:00Z',
-        attachments: ['laptop_specs.pdf', 'vendor_quote.pdf'],
-      };
-      
-      setRequest(mockRequest);
-    } catch (error) {
-      console.error('Failed to fetch request:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const request = requestDetails as RequestDetail | null;
 
   const handleApprovalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!approvalAction) return;
+    if (!approvalAction || !id) return;
 
     setIsSubmittingApproval(true);
     try {
-      // API call to approve/reject
-      // await apiRequest(`/api/requests/${id}/${approvalAction}/`, {
-      //   method: 'POST',
-      //   body: JSON.stringify({ comment: approvalComment }),
-      // });
+      const approvalData = {
+        approver: user?.id || 0,
+        approver_name: user?.first_name || user?.last_name || '',
+        level: (request?.approval_steps?.length || 0) + 1,
+        status: approvalAction,
+        comments: approvalComment,
+      };
 
-      alert(`Request ${approvalAction}d successfully!`);
+      if (approvalAction === 'APPROVED') {
+        await approveRequest(parseInt(id), approvalData as any);
+        alert('Request approved successfully!');
+      } else {
+        await rejectRequest(parseInt(id), approvalData as any);
+        alert('Request rejected successfully!');
+      }
+      
       navigate('/dashboard/pending-requests');
     } catch (error) {
       console.error('Approval action failed:', error);
+      alert('Failed to submit approval. Please try again.');
     } finally {
       setIsSubmittingApproval(false);
     }
@@ -115,11 +102,15 @@ export default function RequestDetail() {
 
   const handleFinanceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id) return;
+
     setIsSubmittingFinance(true);
 
     try {
       const formData = new FormData();
-      formData.append('finance_notes', financeNotes);
+      formData.append('finance_user', user?.id?.toString() || '0');
+      formData.append('note', financeNotes);
+      
       uploadedFiles.forEach(file => {
         formData.append('files', file);
       });
@@ -131,11 +122,12 @@ export default function RequestDetail() {
       // });
 
       alert('Finance information submitted successfully!');
-      fetchRequestDetails(); // Refresh data
+      fetchRequestDetails(parseInt(id)); // Refresh data
       setFinanceNotes('');
       setUploadedFiles([]);
     } catch (error) {
       console.error('Finance submission failed:', error);
+      alert('Failed to submit finance information. Please try again.');
     } finally {
       setIsSubmittingFinance(false);
     }
@@ -143,28 +135,25 @@ export default function RequestDetail() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      case 'APPROVED': return 'bg-green-100 text-green-800 border-green-200';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'REJECTED': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'urgent': return 'text-red-600 bg-red-50';
-      case 'high': return 'text-orange-600 bg-orange-50';
-      case 'normal': return 'text-blue-600 bg-blue-50';
-      case 'low': return 'text-gray-600 bg-gray-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
+  const calculateItemTotal = (item: Item) => {
+    return (item.qty * parseFloat(item.price)).toFixed(2);
   };
 
-  if (loading) {
+  if (isLoadingRequestDetails) {
     return (
       <>
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-600">Loading request details...</div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading request details...</p>
+          </div>
         </div>
       </>
     );
@@ -186,8 +175,8 @@ export default function RequestDetail() {
     );
   }
 
-  const canApprove = user?.role === 'approver' && request.status === 'pending';
-  const canViewFinanceForm = user?.role === 'finance' && request.status === 'approved';
+  const canApprove = user?.role === 'approver' && request.status === 'PENDING';
+  const canViewFinanceForm = user?.role === 'finance' && request.status === 'APPROVED';
 
   return (
     <>
@@ -203,10 +192,10 @@ export default function RequestDetail() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">Request Details</h1>
-              <p className="text-gray-600 mt-1">Request ID: {request.id}</p>
+              <p className="text-gray-600 mt-1">Request ID: REQ-{String(request.id).padStart(3, '0')}</p>
             </div>
             <span className={`px-4 py-2 rounded-lg text-sm font-medium border ${getStatusColor(request.status)}`}>
-              {request.status.toUpperCase()}
+              {request.status}
             </span>
           </div>
         </div>
@@ -220,107 +209,150 @@ export default function RequestDetail() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Item Name</label>
-                  <p className="text-lg font-semibold text-gray-800 mt-1">{request.item_name}</p>
+                  <label className="text-sm font-medium text-gray-600">Title</label>
+                  <p className="text-lg font-semibold text-gray-800 mt-1">{request.title}</p>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium text-gray-600">Description</label>
-                  <p className="text-gray-700 mt-1">{request.description}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Quantity</label>
-                    <p className="text-gray-800 font-semibold mt-1">{request.quantity}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Unit Price</label>
-                    <p className="text-gray-800 font-semibold mt-1">${request.unit_price.toLocaleString()}</p>
-                  </div>
+                  <p className="text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg">{request.description}</p>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium text-gray-600">Total Amount</label>
-                  <p className="text-2xl font-bold text-green-600 mt-1">
-                    ${request.total_amount.toLocaleString()}
+                  <p className="text-3xl font-bold text-green-600 mt-1">
+                    ${parseFloat(request.amount).toLocaleString()}
                   </p>
                 </div>
 
+                {/* Items Table */}
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Preferred Vendor</label>
-                  <p className="text-gray-800 mt-1">{request.vendor || 'Not specified'}</p>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Urgency Level</label>
-                  <div className="mt-1">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getUrgencyColor(request.urgency)}`}>
-                      {request.urgency.toUpperCase()}
-                    </span>
+                  <label className="text-sm font-medium text-gray-600 mb-3 block">Items</label>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item Name</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {request.items.map((item) => (
+                          <tr key={item.id}>
+                            <td className="px-4 py-3 text-sm text-gray-800">{item.item_name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-800">{item.qty}</td>
+                            <td className="px-4 py-3 text-sm text-gray-800">${parseFloat(item.price).toFixed(2)}</td>
+                            <td className="px-4 py-3 text-sm font-semibold text-gray-800">${calculateItemTotal(item)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-50">
+                        <tr>
+                          <td colSpan={3} className="px-4 py-3 text-right text-sm font-semibold text-gray-800">Grand Total:</td>
+                          <td className="px-4 py-3 text-sm font-bold text-green-600">${parseFloat(request.amount).toFixed(2)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Justification</label>
-                  <p className="text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg">{request.justification}</p>
-                </div>
-
-                {request.attachments && request.attachments.length > 0 && (
+                {/* Attachments */}
+                {request.proforma_invoice && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600 mb-2 block">Attachments</label>
-                    <div className="space-y-2">
-                      {request.attachments.map((file, index) => (
-                        <div key={index} className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
-                          <span className="text-xl">📎</span>
-                          <span className="text-gray-700">{file}</span>
-                          <button className="ml-auto text-green-600 hover:text-green-700 text-sm font-medium">
-                            Download
-                          </button>
-                        </div>
-                      ))}
+                    <label className="text-sm font-medium text-gray-600 mb-2 block">Proforma Invoice</label>
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                      <span className="text-xl">📄</span>
+                      <span className="text-gray-700">Proforma Invoice</span>
+                      <a 
+                        href={request.proforma_invoice}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto text-green-600 hover:text-green-700 text-sm font-medium"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {request.purchase_order && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 mb-2 block">Purchase Order</label>
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                      <span className="text-xl">📋</span>
+                      <span className="text-gray-700">Purchase Order</span>
+                      <a 
+                        href={request.purchase_order}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto text-green-600 hover:text-green-700 text-sm font-medium"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {request.receipt && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 mb-2 block">Receipt</label>
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+                      <span className="text-xl">🧾</span>
+                      <span className="text-gray-700">Receipt</span>
+                      <a 
+                        href={request.receipt}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto text-green-600 hover:text-green-700 text-sm font-medium"
+                      >
+                        Download
+                      </a>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Approval/Rejection Information */}
-            {(request.status === 'approved' || request.status === 'rejected') && (
+            {/* Approval Steps History */}
+            {request.approval_steps && request.approval_steps.length > 0 && (
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  {request.status === 'approved' ? 'Approval Information' : 'Rejection Information'}
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Approval History</h2>
                 
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-600">
-                      {request.status === 'approved' ? 'Approved By:' : 'Rejected By:'}
-                    </span>
-                    <span className="font-medium text-gray-800">
-                      {request.status === 'approved' ? request.approved_by : request.rejected_by}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Date:</span>
-                    <span className="font-medium text-gray-800">
-                      {request.status === 'approved' ? request.approval_date : request.rejection_date}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 mb-2 block">
-                      {request.status === 'approved' ? 'Approval Comment:' : 'Rejection Reason:'}
-                    </label>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
-                      {request.status === 'approved' ? request.approval_comment : request.rejection_reason}
-                    </p>
-                  </div>
+                <div className="space-y-4">
+                  {request.approval_steps.map((step, index) => (
+                    <div key={step.id} className="border-l-4 border-gray-300 pl-4 py-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="font-semibold text-gray-800">Level {step.level}</span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              step.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                              step.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {step.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            By {step.approver_name} • {new Date(step.created_at).toLocaleDateString()}
+                          </p>
+                          {step.comments && (
+                            <p className="mt-2 text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                              {step.comments}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Finance Notes (if available) */}
-            {request.status === 'approved' && request.finance_notes && (
+            {/* Finance Notes */}
+            {request.finance_notes && (
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Finance Notes</h2>
                 <p className="text-gray-700 bg-blue-50 p-3 rounded-lg">{request.finance_notes}</p>
@@ -332,24 +364,28 @@ export default function RequestDetail() {
           <div className="space-y-6">
             {/* Requester Information */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Requester Information</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Request Information</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="text-gray-800 mt-1">{request.requested_by.name}</p>
+                  <label className="text-sm font-medium text-gray-600">Created By</label>
+                  <p className="text-gray-800 mt-1">{request.created_by_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="text-gray-800 mt-1">{request.requested_by.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Department</label>
-                  <p className="text-gray-800 mt-1">{request.requested_by.department}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Request Date</label>
+                  <label className="text-sm font-medium text-gray-600">Created Date</label>
                   <p className="text-gray-800 mt-1">
-                    {new Date(request.request_date).toLocaleDateString()}
+                    {new Date(request.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Last Updated</label>
+                  <p className="text-gray-800 mt-1">
+                    {new Date(request.updated_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Required Approvals</label>
+                  <p className="text-gray-800 mt-1">
+                    {request.approval_steps.filter(s => s.status === 'APPROVED').length} / {request.required_approval_levels}
                   </p>
                 </div>
               </div>
@@ -369,9 +405,9 @@ export default function RequestDetail() {
                         <input
                           type="radio"
                           name="action"
-                          value="approve"
-                          checked={approvalAction === 'approve'}
-                          onChange={() => setApprovalAction('approve')}
+                          value="APPROVED"
+                          checked={approvalAction === 'APPROVED'}
+                          onChange={() => setApprovalAction('APPROVED')}
                           className="mr-2"
                           required
                         />
@@ -381,9 +417,9 @@ export default function RequestDetail() {
                         <input
                           type="radio"
                           name="action"
-                          value="reject"
-                          checked={approvalAction === 'reject'}
-                          onChange={() => setApprovalAction('reject')}
+                          value="REJECTED"
+                          checked={approvalAction === 'REJECTED'}
+                          onChange={() => setApprovalAction('REJECTED')}
                           className="mr-2"
                           required
                         />
@@ -394,15 +430,15 @@ export default function RequestDetail() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Comment {approvalAction === 'reject' && '*'}
+                      Comment {approvalAction === 'REJECTED' && '*'}
                     </label>
                     <textarea
                       value={approvalComment}
                       onChange={(e) => setApprovalComment(e.target.value)}
                       rows={4}
-                      required={approvalAction === 'reject'}
+                      required={approvalAction === 'REJECTED'}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder={approvalAction === 'reject' ? 'Please provide a reason for rejection...' : 'Optional approval notes...'}
+                      placeholder={approvalAction === 'REJECTED' ? 'Please provide a reason for rejection...' : 'Optional approval notes...'}
                     />
                   </div>
 
@@ -410,70 +446,67 @@ export default function RequestDetail() {
                     type="submit"
                     disabled={isSubmittingApproval || !approvalAction}
                     className={`w-full text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed ${
-                      approvalAction === 'approve'
+                      approvalAction === 'APPROVED'
                         ? 'bg-green-600 hover:bg-green-700'
                         : 'bg-red-600 hover:bg-red-700'
                     }`}
                   >
-                    {isSubmittingApproval ? 'Processing...' : `Submit ${approvalAction === 'approve' ? 'Approval' : 'Rejection'}`}
+                    {isSubmittingApproval ? 'Processing...' : `Submit ${approvalAction === 'APPROVED' ? 'Approval' : 'Rejection'}`}
                   </button>
                 </form>
               </div>
             )}
 
-            {/* Finance Forms */}
+            {/* Finance Form */}
             {canViewFinanceForm && (
-              <div className="space-y-6">
-                {/* File Upload Form */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload Documents</h3>
-                  <form onSubmit={handleFinanceSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Attach Files (Invoice, Receipt, etc.)
-                      </label>
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleFileUpload}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                      />
-                      {uploadedFiles.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {uploadedFiles.map((file, index) => (
-                            <div key={index} className="text-sm text-gray-600 flex items-center gap-2">
-                              <span>📎</span>
-                              <span>{file.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Finance Information</h3>
+                <form onSubmit={handleFinanceSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Attach Files (Invoice, Receipt, etc.)
+                    </label>
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                    />
+                    {uploadedFiles.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {uploadedFiles.map((file, index) => (
+                          <div key={index} className="text-sm text-gray-600 flex items-center gap-2">
+                            <span>📎</span>
+                            <span>{file.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Finance Notes
-                      </label>
-                      <textarea
-                        value={financeNotes}
-                        onChange={(e) => setFinanceNotes(e.target.value)}
-                        rows={4}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Add payment details, invoice number, transaction reference, etc..."
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Finance Notes *
+                    </label>
+                    <textarea
+                      value={financeNotes}
+                      onChange={(e) => setFinanceNotes(e.target.value)}
+                      rows={4}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Add payment details, invoice number, transaction reference, etc..."
+                    />
+                  </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSubmittingFinance}
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    >
-                      {isSubmittingFinance ? 'Submitting...' : 'Submit Finance Information'}
-                    </button>
-                  </form>
-                </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingFinance}
+                    className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isSubmittingFinance ? 'Submitting...' : 'Submit Finance Information'}
+                  </button>
+                </form>
               </div>
             )}
           </div>

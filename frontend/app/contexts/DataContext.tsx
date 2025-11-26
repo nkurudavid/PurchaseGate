@@ -43,8 +43,11 @@ interface CreateRequestData {
 interface DataContextType {
     // Purchase Requests
     requests: PurchaseRequest[];
+    requestDetails: PurchaseRequest | null;
+    isLoadingRequestDetails: boolean;
     isLoadingRequests: boolean;
     fetchRequests: () => Promise<void>;
+    fetchRequestDetails: (id: number) => Promise<void>
     createRequest: (data: CreateRequestData) => Promise<PurchaseRequest>;
     updateRequest: (id: number, data: Partial<CreateRequestData>) => Promise<PurchaseRequest>;
     deleteRequest: (id: number) => Promise<void>;
@@ -66,7 +69,9 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
     const [requests, setRequests] = useState<PurchaseRequest[]>([]);
+    const [requestDetails, setRequestDetails] = useState<PurchaseRequest | null>(null);
     const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+    const [isLoadingRequestDetails, setIsLoadingRequestDetails] = useState(false);
 
     // Get toast functions
     const toast = useToast();
@@ -76,13 +81,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const fetchRequests = useCallback(async () => {
         setIsLoadingRequests(true);
         try {
-            const data = await apiRequest<PurchaseRequest[]>(API_ENDPOINTS.staff_requests);
-            setRequests(data);
+            const response = await apiRequest<{ results: PurchaseRequest[] }>(API_ENDPOINTS.staff_requests);
+            setRequests(response.results);
         } catch (error) {
             console.error('Failed to fetch requests:', error);
             throw error;
         } finally {
             setIsLoadingRequests(false);
+        }
+    }, []);
+
+    // Fetch request details
+    const fetchRequestDetails = useCallback(async (id: number) => {
+        setIsLoadingRequestDetails(true);
+        try {
+            const endpoint = API_ENDPOINTS.request_details.replace('{id}', id.toString());
+            const response = await apiRequest<PurchaseRequest>(endpoint);
+            setRequestDetails(response);
+        } catch (error) {
+            console.error('Failed to fetch request details:', error);
+            throw error;
+        } finally {
+            setIsLoadingRequestDetails(false);
         }
     }, []);
 
@@ -257,8 +277,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
         <DataContext.Provider
             value={{
                 requests,
+                requestDetails,
                 isLoadingRequests,
+                isLoadingRequestDetails,
                 fetchRequests,
+                fetchRequestDetails,
                 createRequest,
                 updateRequest,
                 deleteRequest,

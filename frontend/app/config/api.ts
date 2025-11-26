@@ -1,7 +1,7 @@
-import { API_ENDPOINTS } from './endpoints';
+// frontend/app/config/api.ts
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface RequestOptions extends RequestInit {
-  token?: string;
   skipAuth?: boolean;
 }
 
@@ -9,37 +9,79 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { token, skipAuth, ...fetchOptions } = options;
-  
+  const { skipAuth = false, ...fetchOptions } = options;
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...fetchOptions.headers,
   };
 
-  // Add token to headers if provided (for initial requests)
-  if (token && !skipAuth) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(endpoint, {
-    ...fetchOptions,
-    headers,
-    credentials: 'include', // Important: Include cookies in requests
-  });
-
-  // Handle 401 (Unauthorized)
-  if (response.status === 401 && !skipAuth) {
-    // Redirect to login
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+  // Add authentication token if not skipped
+  if (!skipAuth) {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (e) {
+      // localStorage might not be available
     }
-    throw new Error('Authentication failed');
   }
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.detail || 'API request failed');
-  }
+  try {
+    const response = await fetch(endpoint, {
+      ...fetchOptions,
+      headers,
+      credentials: 'include',
+    });
 
-  return response.json();
+    // Try to parse response body
+    let responseData;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await response.json();
+    } else {
+      responseData = await response.text();
+    }
+
+    if (!response.ok) {
+      // Extract error message from response
+      let errorMessage = 'API request failed';
+      
+      if (typeof responseData === 'object' && responseData !== null) {
+        // Handle different error response formats
+        if (responseData.detail) {
+          errorMessage = responseData.detail;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } else if (responseData.error) {
+          errorMessage = responseData.error;
+        } else {
+          // If it's a validation error with field-specific errors
+          errorMessage = JSON.stringify(responseData);
+        }
+      } else if (typeof responseData === 'string') {
+        errorMessage = responseData;
+      }
+
+      console.error('API Error:', {
+        endpoint,
+        status: response.status,
+        statusText: response.statusText,
+        errorData: responseData
+      });
+
+      throw new Error(errorMessage);
+    }
+
+    return responseData as T;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Network error occurred');
+  }
 }
+
+export default API_BASE_URL;
