@@ -1,6 +1,8 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import type { ReactNode } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import { DataProvider } from './contexts/DataContext';
+import { ToastProvider } from './contexts/ToastContext';
 import './app.css';
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -24,8 +26,12 @@ export function Layout({ children }: { children: ReactNode }) {
 
 export default function Root() {
   return (
-    <AuthProvider>
-      <Outlet />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <DataProvider>
+          <Outlet />
+        </DataProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
