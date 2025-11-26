@@ -50,6 +50,7 @@ BACKEND_URL = os.getenv('BACKEND_URL')
 CORS_ALLOWED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 CSRF_TRUSTED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
