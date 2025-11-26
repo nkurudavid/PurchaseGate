@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 type UserRole = 'staff' | 'approver' | 'finance';
 
@@ -19,6 +20,9 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  
+  // Get toast functions
+  const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,9 +31,10 @@ export default function Login() {
     
     try {
       await login(email, password, role);
+      toast.success('Logged in successfully!');
       navigate('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
+      toast.error(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
     } finally {
       setIsSubmitting(false);
     }
@@ -114,13 +119,6 @@ export default function Login() {
                 ))}
               </select>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
 
             {/* Submit Button */}
             <button
