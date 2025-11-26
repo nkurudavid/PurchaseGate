@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load environment variables from .env file
-load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / '.env.local')
 
 
 def env_bool(name, default=False):
@@ -44,20 +44,14 @@ ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 
 
 # CORS settings
-# CORS_ORIGIN_ALLOW_ALL = True 
 CORS_ALLOW_CREDENTIALS = True
 
-
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://localhost:8000')
+FRONTEND_URL = os.getenv('FRONTEND_URL')
+BACKEND_URL = os.getenv('BACKEND_URL')
 
 CSRF_TRUSTED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 
 CORS_ALLOWED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
-
-CORS_ORIGIN_WHITELIST = [
-    url for url in os.getenv('CORS_ORIGIN_WHITELIST', '').split(',') if url
-]
 
 
 # Application definition

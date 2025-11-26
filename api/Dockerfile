@@ -23,6 +23,7 @@ EXPOSE 8000
 
 
 # development
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
 # production,
-# CMD ["gunicorn", "procure.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["gunicorn", "purchage_gate.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
