@@ -1,106 +1,94 @@
 // frontend/app/routes/dashboard.approved-requests.tsx
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router';
 
-interface Request {
-  id: string;
-  item: string;
-  amount: number;
-  requestedBy: string;
-  department: string;
-  date: string;
-  urgency: string;
-  description: string;
-}
-
 export default function ApprovedRequests() {
-  const { user } = useAuth();
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
-  const [comment, setComment] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState('all');
 
-  const approvedRequests: Request[] = [
+  const approvedRequests = [
     {
-      id: 'REQ-001',
-      item: 'Office Supplies Pack',
-      amount: 250,
-      requestedBy: 'John Smith',
-      department: 'Sales',
-      date: '2025-11-20',
-      urgency: 'normal',
-      description: 'Monthly office supplies including pens, papers, folders, and desk organizers for the sales team.'
+      id: 'REQ-002',
+      item: 'Dell Laptop XPS 15',
+      amount: 1200,
+      requestedBy: 'Alice Cooper',
+      department: 'Engineering',
+      requestDate: '2025-11-19',
+      approvedDate: '2025-11-20',
+      approvedBy: 'Jane Smith',
+      status: 'Approved - Pending Payment',
     },
     {
-      id: 'REQ-003',
-      item: 'HP LaserJet Printer',
-      amount: 450,
-      requestedBy: 'Sarah Johnson',
-      department: 'Marketing',
-      date: '2025-11-18',
-      urgency: 'high',
-      description: 'High-speed color printer needed for marketing materials and client presentations.'
+      id: 'REQ-005',
+      item: 'Standing Desk',
+      amount: 350,
+      requestedBy: 'Bob Wilson',
+      department: 'HR',
+      requestDate: '2025-11-15',
+      approvedDate: '2025-11-16',
+      approvedBy: 'John Doe',
+      status: 'Approved - Ordered',
     },
     {
-      id: 'REQ-006',
-      item: 'Conference Room Projector',
-      amount: 800,
-      requestedBy: 'Mike Davis',
-      department: 'IT',
-      date: '2025-11-17',
-      urgency: 'normal',
-      description: '4K projector for the main conference room to replace the old equipment.'
+      id: 'REQ-008',
+      item: 'Wireless Headsets (5 units)',
+      amount: 600,
+      requestedBy: 'Carol Martinez',
+      department: 'Customer Support',
+      requestDate: '2025-11-14',
+      approvedDate: '2025-11-15',
+      approvedBy: 'Jane Smith',
+      status: 'Approved - Delivered',
     },
     {
-      id: 'REQ-007',
-      item: 'Software Licenses (Adobe Creative Suite)',
-      amount: 1500,
-      requestedBy: 'Emily Brown',
+      id: 'REQ-009',
+      item: 'Office Chairs (10 units)',
+      amount: 1800,
+      requestedBy: 'David Lee',
+      department: 'Operations',
+      requestDate: '2025-11-13',
+      approvedDate: '2025-11-14',
+      approvedBy: 'John Doe',
+      status: 'Approved - In Transit',
+    },
+    {
+      id: 'REQ-010',
+      item: 'External Monitors (27")',
+      amount: 900,
+      requestedBy: 'Emma Taylor',
       department: 'Design',
-      date: '2025-11-16',
-      urgency: 'urgent',
-      description: 'Annual licenses for 5 designers. Current licenses expire next week.'
+      requestDate: '2025-11-12',
+      approvedDate: '2025-11-13',
+      approvedBy: 'Jane Smith',
+      status: 'Approved - Delivered',
     },
   ];
 
-  const handleAction = (request: Request, action: 'approve' | 'reject') => {
-    setSelectedRequest(request);
-    setActionType(action);
-    setShowModal(true);
+  const filteredRequests = approvedRequests.filter(request => {
+    const matchesSearch = request.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.requestedBy.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (dateFilter === 'all') return matchesSearch;
+    
+    const requestDate = new Date(request.approvedDate);
+    const today = new Date();
+    const daysAgo = Math.floor((today.getTime() - requestDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (dateFilter === 'week' && daysAgo <= 7) return matchesSearch;
+    if (dateFilter === 'month' && daysAgo <= 30) return matchesSearch;
+    
+    return false;
+  });
+
+  const getStatusColor = (status: string) => {
+    if (status.includes('Delivered')) return 'bg-green-100 text-green-800';
+    if (status.includes('Transit')) return 'bg-blue-100 text-blue-800';
+    if (status.includes('Ordered')) return 'bg-purple-100 text-purple-800';
+    return 'bg-yellow-100 text-yellow-800';
   };
 
-  const handleSubmitAction = async () => {
-    if (!selectedRequest || !actionType) return;
-
-    try {
-      // API call to approve/reject
-      // await apiRequest(`/api/requests/${selectedRequest.id}/${actionType}/`, {
-      //   method: 'POST',
-      //   body: JSON.stringify({ comment }),
-      // });
-
-      console.log(`${actionType} request ${selectedRequest.id}:`, comment);
-      alert(`Request ${actionType === 'approve' ? 'approved' : 'rejected'} successfully!`);
-      
-      setShowModal(false);
-      setSelectedRequest(null);
-      setComment('');
-      setActionType(null);
-    } catch (error) {
-      console.error('Action failed:', error);
-    }
-  };
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'normal': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const totalAmount = filteredRequests.reduce((sum, req) => sum + req.amount, 0);
 
   return (
     <>
@@ -108,145 +96,157 @@ export default function ApprovedRequests() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Approved Requests</h1>
-          <p className="text-gray-600 mt-1">
-            Review and {user?.role === 'approver' ? 'approve' : 'process'} approved purchase requests
-          </p>
+          <p className="text-gray-600 mt-1">View all approved purchase requests and their delivery status</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-yellow-500">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-500">
             <p className="text-gray-600 text-sm">Total Approved</p>
-            <p className="text-3xl font-bold text-gray-800">{approvedRequests.length}</p>
-          </div>
-          <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-red-500">
-            <p className="text-gray-600 text-sm">Urgent</p>
-            <p className="text-3xl font-bold text-red-600">
-              {approvedRequests.filter(r => r.urgency === 'urgent').length}
-            </p>
+            <p className="text-3xl font-bold text-gray-800">{filteredRequests.length}</p>
           </div>
           <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-blue-500">
             <p className="text-gray-600 text-sm">Total Amount</p>
+            <p className="text-3xl font-bold text-gray-800">${totalAmount.toLocaleString()}</p>
+          </div>
+          <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-purple-500">
+            <p className="text-gray-600 text-sm">Ordered</p>
             <p className="text-3xl font-bold text-gray-800">
-              ${approvedRequests.reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
+              {filteredRequests.filter(r => r.status.includes('Ordered')).length}
+            </p>
+          </div>
+          <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-600">
+            <p className="text-gray-600 text-sm">Delivered</p>
+            <p className="text-3xl font-bold text-gray-800">
+              {filteredRequests.filter(r => r.status.includes('Delivered')).length}
             </p>
           </div>
         </div>
 
-        {/* Requests Grid */}
-        <div className="grid grid-cols-1 gap-4">
-          {approvedRequests.map((request) => (
-            <div key={request.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">{request.item}</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getUrgencyColor(request.urgency)}`}>
-                      {request.urgency.toUpperCase()}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-3">{request.description}</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Request ID</p>
-                      <p className="font-medium text-gray-800">{request.id}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Requested By</p>
-                      <p className="font-medium text-gray-800">{request.requestedBy}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Department</p>
-                      <p className="font-medium text-gray-800">{request.department}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Date</p>
-                      <p className="font-medium text-gray-800">{request.date}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="ml-6 text-right">
-                  <p className="text-2xl font-bold text-gray-800">${request.amount.toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => handleAction(request, 'approve')}
-                  className="flex-1 bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  ✓ Approve
-                </button>
-                <button
-                  onClick={() => handleAction(request, 'reject')}
-                  className="flex-1 bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors"
-                >
-                  ✗ Reject
-                </button>
-                <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                  View Details
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Action Modal */}
-      {showModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              {actionType === 'approve' ? 'Approve' : 'Reject'} Request
-            </h3>
-            
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">Request ID</p>
-              <p className="font-semibold text-gray-800">{selectedRequest.id}</p>
-              <p className="text-sm text-gray-600 mt-2">Item</p>
-              <p className="font-semibold text-gray-800">{selectedRequest.item}</p>
-              <p className="text-sm text-gray-600 mt-2">Amount</p>
-              <p className="font-semibold text-gray-800">${selectedRequest.amount.toLocaleString()}</p>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Comment {actionType === 'reject' && '(Required)'}
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder={`Add a comment about this ${actionType}...`}
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by request ID, item, or requester..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
 
-            <div className="flex gap-3">
+            {/* Date Filter */}
+            <div className="flex gap-2">
               <button
-                onClick={handleSubmitAction}
-                className={`flex-1 text-white px-6 py-2 rounded-lg font-medium transition-colors ${
-                  actionType === 'approve'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-red-600 hover:bg-red-700'
+                onClick={() => setDateFilter('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  dateFilter === 'all'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Confirm {actionType === 'approve' ? 'Approval' : 'Rejection'}
+                All Time
               </button>
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedRequest(null);
-                  setComment('');
-                }}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                onClick={() => setDateFilter('week')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  dateFilter === 'week'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
-                Cancel
+                Last Week
+              </button>
+              <button
+                onClick={() => setDateFilter('month')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  dateFilter === 'month'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Last Month
               </button>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Requests Table */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requester</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approved Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredRequests.map((request) => (
+                  <tr key={request.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {request.id}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {request.item}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
+                      ${request.amount.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {request.requestedBy}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {request.department}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {request.approvedDate}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                        {request.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <Link 
+                        to={`/dashboard/request/${request.id}`}
+                        className="text-green-600 hover:text-green-800 font-medium"
+                      >
+                        View Details →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {filteredRequests.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No approved requests found</p>
+            </div>
+          )}
+        </div>
+
+        {/* Export/Download Section */}
+        <div className="mt-6 flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            Showing {filteredRequests.length} approved request(s)
+          </p>
+          <button className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2">
+            <span>📥</span>
+            Export to Excel
+          </button>
+        </div>
+      </div>
     </>
   );
 }

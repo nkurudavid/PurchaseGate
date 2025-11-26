@@ -68,7 +68,7 @@ export default function RequestDetail() {
         vendor: 'Dell Official Store',
         urgency: 'high',
         justification: 'New developers joining the team require laptops for their work. Current inventory is depleted and these are needed urgently for onboarding next week.',
-        status: 'pending',
+        status: 'approved',
         requested_by: {
           name: 'John Smith',
           email: 'john.smith@company.com',
