@@ -221,9 +221,12 @@ export default function MyRequests() {
                       {request.date}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className="text-green-600 hover:text-green-800 font-medium">
+                      <Link
+                        to={`/dashboard/request/${request.id}`}
+                        className="text-green-600 hover:text-green-800 font-medium"
+                      >
                         View Details →
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}

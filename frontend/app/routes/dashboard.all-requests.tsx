@@ -1,5 +1,6 @@
 // frontend/app/routes/dashboard.all-requests.tsx
 import { useState } from 'react';
+import { Link } from 'react-router';
 
 export default function AllRequests() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -194,9 +195,12 @@ export default function AllRequests() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className="text-green-600 hover:text-green-800 font-medium">
-                        View →
-                      </button>
+                      <Link
+                        to={`/dashboard/request/${request.id}`}
+                        className="text-green-600 hover:text-green-800 font-medium"
+                      >
+                        View Details →
+                      </Link>
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,7 @@
 // frontend/app/routes/dashboard.pending-requests.tsx
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router';
 
 interface Request {
   id: string;

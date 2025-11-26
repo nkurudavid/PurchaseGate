@@ -14,6 +14,7 @@ export default [
     route('pending-requests', 'routes/dashboard.pending-requests.tsx'),
     route('approved-requests', 'routes/dashboard.approved-requests.tsx'),
     route('all-requests', 'routes/dashboard.all-requests.tsx'),
+    route('request/:id', 'routes/dashboard.request.$id.tsx'),
     route('reports', 'routes/dashboard.reports.tsx'),
   ]),
   
