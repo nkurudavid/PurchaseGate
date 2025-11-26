@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  # --------------------
+  # Django Backend
+  # --------------------
+  backend:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env.prod
+    container_name: purchasegate-backend
+    command: ["./entrypoint.prod.sh"]
+    volumes:
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always
+
+  # --------------------
+  # PostgreSQL Database
+  # --------------------
+  db:
+    image: postgres:16
+    container_name: purchasegate-db
+    env_file:
+      - ./api/.env.prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+  # --------------------
+  # React Frontend
+  # --------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: purchasegate-frontend
+    restart: always
+    expose:
+      - "80"  # internal port only
+    depends_on:
+      - backend
+
+  # --------------------
+  # Nginx Reverse Proxy
+  # --------------------
+  nginx:
+    image: nginx:alpine
+    container_name: purchasegate-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/staticfiles
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+
+# --------------------
+# Volumes
+# --------------------
+volumes:
+  postgres_data:
+  static_volume:

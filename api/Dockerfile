@@ -1,29 +1,30 @@
-# Image selection
-FROM python:3.14-slim
+FROM python:3.11-slim
 
-# Working directory
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Install system dependencies (if any)
+# Install required system dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
     libpq-dev \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY . /app
+# Install python dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
-# Upgrade pip and install Python dependencies
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Copy the project files
+COPY . .
 
+# Make entrypoint executable
+RUN chmod +x ./entrypoint.prod.sh
 
-# Expose the port the app runs on
+# Expose port
 EXPOSE 8000
 
-
-# development
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-# production,
-CMD ["gunicorn", "purchage_gate.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# Start the server
+CMD ["./entrypoint.prod.sh"]

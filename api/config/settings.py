@@ -18,40 +18,38 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env file
-load_dotenv(BASE_DIR / '.env.local')
+# Choose environment
+ENV = os.getenv("DJANGO_ENV", "local")
+
+ENV_FILE = ".env.prod" if ENV == "production" else ".env.local"
+load_dotenv(BASE_DIR / ENV_FILE)
 
 
-def env_bool(name, default=False):
-    """Convert .env string values to boolean."""
-    return str(os.getenv(name, str(default))).lower() in ("true", "1", "yes")
+def env_bool(key, default=False):
+    return str(os.getenv(key, str(default))).lower() in ("true", "1", "yes")
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+# SECURITY
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise Exception("DJANGO_SECRET_KEY is not set")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 
+DEBUG = env_bool("DJANGO_DEBUG", default=False)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG
-DEBUG = env_bool("DJANGO_DEBUG", default="True")
 
 # ALLOWED_HOSTS
 raw_hosts = os.getenv("DJANGO_ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 
 
-# CORS settings
-CORS_ALLOW_CREDENTIALS = True
-
+# CORS & CSRF
 FRONTEND_URL = os.getenv('FRONTEND_URL')
 BACKEND_URL = os.getenv('BACKEND_URL')
 
+CORS_ALLOWED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 CSRF_TRUSTED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 
-CORS_ALLOWED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
 
 
 # Application definition
@@ -122,13 +120,15 @@ DATABASES = {
         
         ## for postgres database
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv("POSTGRES_DB"),
-        'USER': os.getenv("POSTGRES_USER"),
-        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
-        'HOST': os.getenv("POSTGRES_HOST"),
-        'PORT': os.getenv("POSTGRES_PORT"),
+        'NAME': os.getenv("DATABASE_DB"),
+        'USER': os.getenv("DATABASE_USER"),
+        'PASSWORD': os.getenv("DATABASE_PASSWORD"),
+        'HOST': os.getenv("DATABASE_HOST"),
+        'PORT': os.getenv("DATABASE_PORT"),
     }
 }
+if not DATABASES["default"]["NAME"]:
+    raise Exception("Database variables missing")
 
 
 # Password validation
@@ -155,7 +155,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.getenv("DJANGO_TIMEZONE", "UTC")
 
 USE_I18N = True
 
@@ -189,7 +189,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 JWT_COOKIE_HTTPONLY = env_bool("JWT_COOKIE_HTTPONLY", default=True)
-JWT_COOKIE_SECURE = env_bool("JWT_COOKIE_SECURE", default=False)
+JWT_COOKIE_SECURE = env_bool("JWT_COOKIE_SECURE", not DEBUG)
 
 
 # Django REST Framework configuration
