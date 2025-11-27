@@ -17,9 +17,10 @@ export const API_ENDPOINTS = {
   create_request: `${API_BASE_URL}/purchases/requests/`,
   approve_request: `${API_BASE_URL}/purchases/requests/{id}/approve/`,
   reject_request: `${API_BASE_URL}/purchases/requests/{id}/reject/`,
-  add_finance_note: `${API_BASE_URL}/purchases/requests/{id}/finance_note/`,
-  update_finance_note: `${API_BASE_URL}/purchases/requests/{id}/finance_note/`,
-  delete_finance_note: `${API_BASE_URL}/purchases/requests/{id}/finance_note/`,
+  add_finance_note: `${API_BASE_URL}/purchases/requests/{id}/finance_notes/`,
+  update_finance_note: `${API_BASE_URL}/purchases/requests/{id}/finance_notes/`,
+  finance_upload_file: `${API_BASE_URL}/purchases/requests/{id}/`,
+  delete_finance_note: `${API_BASE_URL}/purchases/requests/{id}/finance_notes/`,
 };
 
 export default API_BASE_URL;

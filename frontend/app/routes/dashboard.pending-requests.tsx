@@ -236,7 +236,7 @@ export default function PendingRequests() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-3 py-1 text-xs font-medium rounded-full ${badgeClass}`}>
-                            {approvedCount}/{request.required_approval_levels} approvals
+                            {approvedCount}/{getRequiredApprovals(request)} approvals
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">

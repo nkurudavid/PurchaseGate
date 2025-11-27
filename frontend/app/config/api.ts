@@ -11,9 +11,13 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { skipAuth = false, ...fetchOptions } = options;
 
+  // Detect if body is FormData
+  const isFormData = fetchOptions.body instanceof FormData;
+
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
     ...fetchOptions.headers,
+    // Only set Content-Type for JSON, not for FormData
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
   };
 
   // Add authentication token if not skipped
@@ -36,9 +40,9 @@ export async function apiRequest<T>(
     });
 
     // Try to parse response body
-    let responseData;
+    let responseData: any;
     const contentType = response.headers.get('content-type');
-    
+
     if (contentType && contentType.includes('application/json')) {
       responseData = await response.json();
     } else {
@@ -46,11 +50,9 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      // Extract error message from response
       let errorMessage = 'API request failed';
-      
+
       if (typeof responseData === 'object' && responseData !== null) {
-        // Handle different error response formats
         if (responseData.detail) {
           errorMessage = responseData.detail;
         } else if (responseData.message) {
@@ -58,7 +60,6 @@ export async function apiRequest<T>(
         } else if (responseData.error) {
           errorMessage = responseData.error;
         } else {
-          // If it's a validation error with field-specific errors
           errorMessage = JSON.stringify(responseData);
         }
       } else if (typeof responseData === 'string') {
@@ -69,7 +70,7 @@ export async function apiRequest<T>(
         endpoint,
         status: response.status,
         statusText: response.statusText,
-        errorData: responseData
+        errorData: responseData,
       });
 
       throw new Error(errorMessage);

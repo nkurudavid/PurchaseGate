@@ -184,9 +184,9 @@ export default function ApprovedRequests() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {rAny.created_by_name || ''}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                          <span className="text-green-600 font-medium">
-                            {rAny.approval_steps?.filter((s: any) => s.status === 'APPROVED').length || 0}/{rAny.required_approval_levels || 0}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-600">
+                            {rAny.approval_steps?.filter((s: any) => s.status === 'APPROVED').length || 0}/{rAny.required_approval_levels || 0} approvals
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">

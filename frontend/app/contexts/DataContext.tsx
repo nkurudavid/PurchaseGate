@@ -40,6 +40,11 @@ interface CreateRequestData {
     estimated_cost: number;
 }
 
+interface FinanceNotePayload {
+    finance_user: number;
+    note: string;
+}
+
 interface DataContextType {
     // Purchase Requests
     requests: PurchaseRequest[];
@@ -49,15 +54,15 @@ interface DataContextType {
     fetchRequests: () => Promise<void>;
     fetchRequestDetails: (id: number) => Promise<void>
     createRequest: (data: CreateRequestData) => Promise<PurchaseRequest>;
-    updateRequest: (id: number, data: Partial<CreateRequestData>) => Promise<PurchaseRequest>;
     deleteRequest: (id: number) => Promise<void>;
     approveRequest: (id: number, note?: string) => Promise<void>;
     rejectRequest: (id: number, note?: string) => Promise<void>;
 
     // Finance Notes
-    addFinanceNote: (id: number, note: string) => Promise<void>;
+    addFinanceNote: (id: number, data: FinanceNotePayload) => Promise<void>;
     updateFinanceNote: (id: number, note: string) => Promise<void>;
     deleteFinanceNote: (id: number) => Promise<void>;
+    uploadRequestFiles: (id: number, data: FormData) => Promise<PurchaseRequest>;
 
     // Profile Management
     updateProfile: (data: UpdateProfileData) => Promise<void>;
@@ -125,23 +130,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
     }, [toast]);
 
-    // Update request
-    const updateRequest = useCallback(async (id: number, data: Partial<CreateRequestData>) => {
-        try {
-            const endpoint = API_ENDPOINTS.update_my_request.replace('{id}', id.toString());
-            const updatedRequest = await apiRequest<PurchaseRequest>(endpoint, {
-                method: 'PATCH',
-                body: JSON.stringify(data),
-            });
-            setRequests(prev => prev.map(req => req.id === id ? updatedRequest : req));
-            toast.success('Request updated successfully!');
-            return updatedRequest;
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Failed to update request');
-            throw error;
-        }
-    }, [toast]);
-
     // Delete request
     const deleteRequest = useCallback(async (id: number) => {
         try {
@@ -160,8 +148,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         try {
             const endpoint = API_ENDPOINTS.approve_request.replace('{id}', id.toString());
             await apiRequest(endpoint, {
-                method: 'POST',
-                body: JSON.stringify({ note }),
+                method: 'PATCH',
+                body: JSON.stringify({ comments: note }),
             });
             toast.success('Request approved successfully!');
             await fetchRequests(); // Refresh the list
@@ -176,7 +164,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         try {
             const endpoint = API_ENDPOINTS.reject_request.replace('{id}', id.toString());
             await apiRequest(endpoint, {
-                method: 'POST',
+                method: 'PATCH',
                 body: JSON.stringify({ note }),
             });
             toast.success('Request rejected successfully!');
@@ -188,12 +176,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }, [fetchRequests, toast]);
 
     // Add finance note
-    const addFinanceNote = useCallback(async (id: number, note: string) => {
+    const addFinanceNote = useCallback(async (id: number, data: FinanceNotePayload) => {
         try {
             const endpoint = API_ENDPOINTS.add_finance_note.replace('{id}', id.toString());
             await apiRequest(endpoint, {
                 method: 'POST',
-                body: JSON.stringify({ finance_note: note }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
             });
             toast.success('Finance note added successfully!');
             await fetchRequests();
@@ -203,13 +192,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
     }, [fetchRequests, toast]);
 
+
     // Update finance note
     const updateFinanceNote = useCallback(async (id: number, note: string) => {
         try {
             const endpoint = API_ENDPOINTS.update_finance_note.replace('{id}', id.toString());
             await apiRequest(endpoint, {
                 method: 'PATCH',
-                body: JSON.stringify({ finance_note: note }),
+                body: JSON.stringify({ note: note }),
             });
             toast.success('Finance note updated successfully!');
             await fetchRequests();
@@ -231,6 +221,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
             throw error;
         }
     }, [fetchRequests, toast]);
+    
+    // Upload finance file for request
+    const uploadRequestFiles = useCallback(async (id: number, data: FormData) => {
+        try {
+            const endpoint = API_ENDPOINTS.finance_upload_file.replace('{id}', id.toString());
+            console.log("files output: ", data, id)
+            const updatedRequest = await apiRequest<PurchaseRequest>(endpoint, {
+            method: 'PUT',
+            body: data, 
+            });
+            toast.success('Files updated successfully!');
+            return updatedRequest;
+
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to upload files');
+            throw error;
+        }
+    }, [toast]);
+
+
 
     // Update profile
     const updateProfile = useCallback(async (data: UpdateProfileData) => {
@@ -283,7 +293,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 fetchRequests,
                 fetchRequestDetails,
                 createRequest,
-                updateRequest,
+                uploadRequestFiles,
                 deleteRequest,
                 approveRequest,
                 rejectRequest,

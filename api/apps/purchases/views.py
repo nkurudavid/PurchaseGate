@@ -3,6 +3,7 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ParseError
 
 from apps.usr.constants import UserRole
 from apps.usr.permissions import IsApprover, IsFinanceOfficer, IsStaffOfficer, IsNotAdmin
@@ -117,20 +118,35 @@ class FinanceNoteViewSet(viewsets.GenericViewSet,
                          mixins.CreateModelMixin,
                          mixins.UpdateModelMixin,
                          mixins.DestroyModelMixin):
+
     permission_classes = [IsAuthenticated, IsFinanceOfficer]
     serializer_class = FinanceNoteSerializer
-    
+
     def get_queryset(self):
         queryset = super().get_queryset()
         request_id = self.kwargs.get('request_pk')
+
         if request_id:
-            queryset = queryset.filter(purchase_request=request_id)
+            queryset = queryset.filter(purchase_request_id=request_id)
+
         return queryset
+
+    def perform_create(self, serializer):
+        request_id = self.kwargs.get("request_pk")
+
+        if not request_id:
+            raise ParseError("Missing purchase request ID.")
+
+        serializer.save(
+            purchase_request_id=request_id,
+            finance_user=self.request.user
+        )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
         headers = self.get_success_headers(serializer.data)
         return Response({
             'message': 'Finance note added successfully!',
@@ -143,6 +159,7 @@ class FinanceNoteViewSet(viewsets.GenericViewSet,
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+
         return Response({
             'message': 'Finance note updated successfully!',
             'data': serializer.data
@@ -151,6 +168,7 @@ class FinanceNoteViewSet(viewsets.GenericViewSet,
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
+
         return Response({
             'message': 'Finance note deleted successfully!'
         }, status=status.HTTP_204_NO_CONTENT)

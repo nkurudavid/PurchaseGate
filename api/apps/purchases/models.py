@@ -162,7 +162,7 @@ class ApprovalStep(models.Model):
 
 
 class FinanceNote(models.Model):
-    purchase_request = models.OneToOneField( PurchaseRequest, on_delete=models.CASCADE, related_name="finance_notes", verbose_name="Purchase Request")
+    purchase_request = models.ForeignKey( PurchaseRequest, on_delete=models.CASCADE, related_name="finance_notes", verbose_name="Purchase Request")
     finance_user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="finance_notes_created", verbose_name="Finance Officer")
     note = models.TextField(verbose_name="Finance Note", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
