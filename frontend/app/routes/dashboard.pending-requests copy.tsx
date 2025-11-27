@@ -1,9 +1,9 @@
-// frontend/app/routes/dashboard.approved-requests.tsx
+// frontend/app/routes/dashboard.pending-requests.tsx
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { useData } from '../contexts/DataContext';
 
-export default function ApprovedRequests() {
+export default function PendingRequests() {
   const { requests, isLoadingRequests, fetchRequests } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
@@ -12,13 +12,13 @@ export default function ApprovedRequests() {
     fetchRequests().catch(console.error);
   }, [fetchRequests]);
 
-  // Filter only approved requests
-  const approvedRequests = useMemo(() => {
-    return requests.filter(r => (r.status || '').toString().toUpperCase() === 'APPROVED');
+  // Filter only pending requests
+  const pendingRequests = useMemo(() => {
+    return requests.filter(r => (r.status || '').toString().toUpperCase() === 'PENDING');
   }, [requests]);
 
   const filteredRequests = useMemo(() => {
-    return approvedRequests.filter(request => {
+    return pendingRequests.filter(request => {
       const rAny = request as any;
       const matchesSearch = (rAny.title || '').toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
                            (request.id || '').toString().includes(searchTerm) ||
@@ -44,7 +44,7 @@ export default function ApprovedRequests() {
       
       return false;
     });
-  }, [approvedRequests, searchTerm, dateFilter]);
+  }, [pendingRequests, searchTerm, dateFilter]);
 
   const totalAmount = useMemo(() => {
     return filteredRequests.reduce((sum, req) => {
@@ -67,7 +67,7 @@ export default function ApprovedRequests() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading approved requests...</p>
+            <p className="mt-4 text-gray-600">Loading pending requests...</p>
           </div>
         </div>
       </>
@@ -79,14 +79,14 @@ export default function ApprovedRequests() {
       <div>
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Approved Requests</h1>
-          <p className="text-gray-600 mt-1">View all approved purchase requests and their status</p>
+          <h1 className="text-2xl font-bold text-gray-800">Pending Requests</h1>
+          <p className="text-gray-600 mt-1">View all pending purchase requests and their status</p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-green-500">
-            <p className="text-gray-600 text-sm">Total Approved</p>
+            <p className="text-gray-600 text-sm">Total pending</p>
             <p className="text-3xl font-bold text-gray-800">{filteredRequests.length}</p>
           </div>
           <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-blue-500">
@@ -163,7 +163,7 @@ export default function ApprovedRequests() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Requester</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approvals</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approved Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">pending Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -186,7 +186,7 @@ export default function ApprovedRequests() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           <span className="text-green-600 font-medium">
-                            {rAny.approval_steps?.filter((s: any) => s.status === 'APPROVED').length || 0}/{rAny.required_approval_levels || 0}
+                            {request.approval_steps?.length || 0}/{request.required_approval_levels} approvals
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -209,11 +209,11 @@ export default function ApprovedRequests() {
           ) : (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">✅</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">No approved requests found</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">No pending requests found</h3>
               <p className="text-gray-600">
                 {searchTerm || dateFilter !== 'all' 
                   ? 'Try adjusting your search or filters' 
-                  : 'No approved requests yet'}
+                  : 'No pending requests yet'}
               </p>
             </div>
           )}
@@ -223,7 +223,7 @@ export default function ApprovedRequests() {
         {filteredRequests.length > 0 && (
           <div className="mt-6 flex justify-between items-center">
             <p className="text-sm text-gray-600">
-              Showing {filteredRequests.length} approved request(s)
+              Showing {filteredRequests.length} pending request(s)
             </p>
             <button className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2">
               <span>📥</span>

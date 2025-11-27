@@ -1,7 +1,10 @@
 from django.db import models
+from django.db.models import Max
+from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
 from apps.purchases.constants import PurchaseStatus, ApprovalStatus
 
 
@@ -22,29 +25,19 @@ class PurchaseRequest(models.Model):
     def __str__(self):
         return f"{self.title} - {self.status}"
     
-    def save(self, *args, **kwargs):
-        user = kwargs.pop("user", None)  # Pass the current user when saving
-
-        if self.pk:
-            old = PurchaseRequest.objects.get(pk=self.pk)
-
-            if old.status == "REJECTED":
-                raise ValueError("Request is REJECTED. No modifications are allowed.")
-
-            if old.status == "APPROVED":
-                if not user or user.role != "finance":
-                    raise ValueError("Request is APPROVED. Only finance can update files.")
-                
-                # Finance can update only purchase_order or receipt
-                allowed_fields = ["purchase_order", "receipt"]
-                for field in self._meta.fields:
-                    field_name = field.name
-                    old_value = getattr(old, field_name)
-                    new_value = getattr(self, field_name)
-                    if field_name not in allowed_fields and old_value != new_value:
-                        raise ValueError(f"Cannot modify {field_name} on an APPROVED request.")
-
-        super().save(*args, **kwargs)
+    def clean(self):
+        if not self.pk:
+            return
+        
+        old = PurchaseRequest.objects.get(pk=self.pk)
+        if old.status == PurchaseStatus.REJECTED:
+            raise ValidationError("Rejected requests cannot be changed.")
+        
+        if old.status == PurchaseStatus.APPROVED:
+            protected = ["title", "description", "amount", "required_approval_levels"]
+            for f in protected:
+                if getattr(old, f) != getattr(self, f):
+                    raise ValidationError(f"'{f}' cannot be changed after approval.")
 
 
 
@@ -58,11 +51,12 @@ class RequestItem(models.Model):
     def total_price(self):
         return self.qty * self.price
     
-    def save(self, *args, **kwargs):
+    def clean(self):
         if self.purchase_request.status in ["APPROVED", "REJECTED"]:
-            raise ValueError(
-                f"Cannot modify item. Request '{self.purchase_request.title}' is already {self.purchase_request.status}."
-            )
+            raise ValidationError("Cannot edit items after final review.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -73,7 +67,7 @@ class RequestItem(models.Model):
 class ApprovalStep(models.Model):
     purchase_request = models.ForeignKey(PurchaseRequest, on_delete=models.CASCADE, related_name="approval_steps", verbose_name="Purchase Request")
     approver = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="approved_requests", verbose_name="Approver")
-    level = models.PositiveIntegerField(verbose_name="Approvel Level")  # 1, 2, 3…
+    level = models.PositiveIntegerField(verbose_name="Approvel Level", blank=True, null=True)  # 1, 2, 3…
     status = models.CharField(max_length=20, choices=ApprovalStatus.choices, verbose_name="Approval Status")
     comments = models.TextField(null=True, blank=True, verbose_name="Comments")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -81,16 +75,36 @@ class ApprovalStep(models.Model):
     class Meta:
         unique_together = ("purchase_request", "level")  # Ensure one step per level
     
-    def save(self, *args, **kwargs):
-        # Prevent changing status if already approved or rejected
-        if self.pk:  # existing instance
-            old = ApprovalStep.objects.get(pk=self.pk)
-            if old.status in [ApprovalStatus.APPROVED, ApprovalStatus.REJECTED]:
-                if self.status != old.status:
-                    raise ValueError(
-                        f"Cannot modify a {old.status} approval step."
-                    )
+    def clean(self):
+        if not self.pk:
+            return
+        old = ApprovalStep.objects.get(pk=self.pk)
+        if old.status in [ApprovalStatus.APPROVED, ApprovalStatus.REJECTED]:
+            raise ValidationError("Final approval cannot be changed.")
+        
+        # Prevent exceeding required levels
+        if self.level and self.purchase_request.required_approval_levels:
+            if self.level > self.purchase_request.required_approval_levels:
+                raise ValidationError(
+                    f"Level cannot exceed required approval levels ({self.purchase_request.required_approval_levels})."
+                )
 
+    def save(self, *args, **kwargs):
+        # Automatically assign level if not set
+        if not self.level:
+            max_level = (
+                ApprovalStep.objects.filter(purchase_request=self.purchase_request)
+                .aggregate(Max("level"))["level__max"] or 0
+            )
+            next_level = max_level + 1
+
+            if next_level > self.purchase_request.required_approval_levels:
+                raise ValidationError(
+                    f"Cannot create more than {self.purchase_request.required_approval_levels} approval steps."
+                )
+            self.level = next_level
+            
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

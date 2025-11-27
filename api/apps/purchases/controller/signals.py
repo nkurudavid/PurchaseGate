@@ -1,24 +1,41 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from apps.purchases.models import PurchaseRequest, ApprovalStep
 from apps.purchases.constants import PurchaseStatus, ApprovalStatus
 
 
-# SIGNAL: Update the PurchaseRequest status automatically
-@receiver(post_save, sender=ApprovalStep)
-def update_request_status(sender, instance, **kwargs):
-    request = instance.purchase_request
+def recompute_request_status(request: PurchaseRequest):
+    steps = request.approval_steps.all()
 
-    # If any step is rejected → request rejected immediately
-    if request.approval_steps.filter(status=ApprovalStatus.REJECTED).exists():
-        if request.status != PurchaseStatus.REJECTED:
-            request.status = PurchaseStatus.REJECTED
-            request.save(update_fields=['status'])
+    # If no approvals exist → pending
+    if not steps.exists():
+        request.status = PurchaseStatus.PENDING
+        request.save(update_fields=["status"])
         return
 
-    # Count approved steps
-    approved_count = request.approval_steps.filter(status=ApprovalStatus.APPROVED).count()
+    # If ANY rejected → rejected
+    if steps.filter(status=ApprovalStatus.REJECTED).exists():
+        request.status = PurchaseStatus.REJECTED
+        request.save(update_fields=["status"])
+        return
+
+    # Count approved
+    approved_count = steps.filter(status=ApprovalStatus.APPROVED).count()
+
+    # If completed → approved
     if approved_count >= request.required_approval_levels:
-        if request.status != PurchaseStatus.APPROVED:
-            request.status = PurchaseStatus.APPROVED
-            request.save(update_fields=['status'])
+        request.status = PurchaseStatus.APPROVED
+    else:
+        request.status = PurchaseStatus.PENDING
+
+    request.save(update_fields=["status"])
+
+
+@receiver(post_save, sender=ApprovalStep)
+def update_request_on_save(sender, instance, **kwargs):
+    recompute_request_status(instance.purchase_request)
+
+
+@receiver(post_delete, sender=ApprovalStep)
+def update_request_on_delete(sender, instance, **kwargs):
+    recompute_request_status(instance.purchase_request)
