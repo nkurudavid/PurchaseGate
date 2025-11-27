@@ -11,9 +11,9 @@ services:
     container_name: purchasegate-backend
     command: ["./entrypoint.prod.sh"]
     volumes:
-      - ./static_volume:/app/staticfiles
-    ports:
-      - "8000:8000"
+      - static_volume:/app/staticfiles
+    expose:
+      - "8000"
     depends_on:
       - db
     restart: always
@@ -33,16 +33,21 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   # --------------------
-  # React Frontend Builder (NO NGINX HERE)
+  # React Router v7 Frontend (Node Server)
   # --------------------
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: purchasegate-frontend
-    volumes:
-      - frontend_build:/frontend_build
-    restart: "no"
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://backend:8000
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    restart: always
 
   # --------------------
   # NGINX Reverse Proxy
@@ -52,10 +57,10 @@ services:
     container_name: purchasegate-nginx
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./frontend/nginx.conf:/etc/nginx/nginx.conf:ro
-      - frontend_build:/usr/share/nginx/html
-      - static_volume:/app/staticfiles
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
     depends_on:
       - frontend
       - backend
@@ -67,4 +72,3 @@ services:
 volumes:
   postgres_data:
   static_volume:
-  frontend_build:

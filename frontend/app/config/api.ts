@@ -1,5 +1,5 @@
 // frontend/app/config/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from './env';
 
 interface RequestOptions extends RequestInit {
   skipAuth?: boolean;

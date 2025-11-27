@@ -1,0 +1,45 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#10B981" opacity="0.1"/>
+  
+  <!-- Main Circle Background -->
+  <circle cx="100" cy="100" r="80" fill="#10B981"/>
+  
+  <!-- Gate Structure -->
+  <g transform="translate(100, 100)">
+    <!-- Left Gate Post -->
+    <rect x="-45" y="-35" width="12" height="70" fill="#ffffff" rx="2"/>
+    
+    <!-- Right Gate Post -->
+    <rect x="33" y="-35" width="12" height="70" fill="#ffffff" rx="2"/>
+    
+    <!-- Top Bar -->
+    <rect x="-45" y="-35" width="90" height="8" fill="#ffffff" rx="2"/>
+    
+    <!-- Gate Bars -->
+    <rect x="-35" y="-25" width="4" height="50" fill="#ffffff" opacity="0.8" rx="1"/>
+    <rect x="-20" y="-25" width="4" height="50" fill="#ffffff" opacity="0.8" rx="1"/>
+    <rect x="-5" y="-25" width="4" height="50" fill="#ffffff" opacity="0.8" rx="1"/>
+    <rect x="10" y="-25" width="4" height="50" fill="#ffffff" opacity="0.8" rx="1"/>
+    <rect x="25" y="-25" width="4" height="50" fill="#ffffff" opacity="0.8" rx="1"/>
+    
+    <!-- Shopping Cart Icon -->
+    <g transform="translate(0, -5)">
+      <!-- Cart Body -->
+      <path d="M -15 5 L -12 20 L 12 20 L 15 5 Z" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+      
+      <!-- Cart Handle -->
+      <path d="M -15 5 L -18 -5 L -10 -5" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      
+      <!-- Cart Wheels -->
+      <circle cx="-8" cy="26" r="3" fill="#ffffff"/>
+      <circle cx="8" cy="26" r="3" fill="#ffffff"/>
+      
+      <!-- Checkmark in cart -->
+      <path d="M -5 12 L 0 17 L 8 8" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+  
+  <!-- Accent Circle -->
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#059669" stroke-width="3" opacity="0.3"/>
+</svg>

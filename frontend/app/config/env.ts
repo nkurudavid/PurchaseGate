@@ -1,8 +1,9 @@
 // .env.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+// In production (Docker), API is proxied through nginx at /api
+// In development, use full localhost URL
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.MODE === 'prod' ? '/api' : 'hp://localhost:8000/api');
 
-if (!API_BASE_URL) {
-  throw new Error("VITE_API_URL is not defined");
+if (import.meta.env.MODE === 'prod' && !import.meta.env.VITE_API_URL) {
+  console.warn("VITE_API_URL not set, using relative URLs");
 }
-
-export { API_BASE_URL };

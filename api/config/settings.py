@@ -46,9 +46,27 @@ ALLOWED_HOSTS = [h.strip() for h in raw_hosts.split(",") if h.strip()]
 # CORS & CSRF
 FRONTEND_URL = os.getenv('FRONTEND_URL')
 BACKEND_URL = os.getenv('BACKEND_URL')
+INTERNAL_FRONTEND_URL = os.getenv('INTERNAL_FRONTEND_URL', '')
+INTERNAL_BACKEND_URL = os.getenv('INTERNAL_BACKEND_URL', '')
 
-CORS_ALLOWED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
-CSRF_TRUSTED_ORIGINS = [url for url in [FRONTEND_URL, BACKEND_URL] if url]
+
+CORS_ALLOWED_ORIGINS = [
+    url for url in [
+        FRONTEND_URL, 
+        BACKEND_URL,
+        INTERNAL_FRONTEND_URL,
+        INTERNAL_BACKEND_URL
+    ] if url
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    url for url in [
+        FRONTEND_URL, 
+        BACKEND_URL,
+        INTERNAL_FRONTEND_URL,
+        INTERNAL_BACKEND_URL
+    ] if url
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -167,9 +185,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static",]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-
 
 # Media files (user-uploaded content)
 MEDIA_URL = '/media/'
