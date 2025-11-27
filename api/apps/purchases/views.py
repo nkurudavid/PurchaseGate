@@ -36,7 +36,7 @@ class PurchaseRequestViewSet(viewsets.GenericViewSet,
         elif role == UserRole.APPROVER:
             return PurchaseRequest.objects.all()
         elif role == UserRole.FINANCE:
-            return PurchaseRequest.objects.filter(status=ApprovalStatus.APPROVED)
+            return PurchaseRequest.objects.filter(status__in=[ApprovalStatus.APPROVED, ApprovalStatus.REJECTED])
         return PurchaseRequest.objects.none()
 
     def get_serializer_class(self):

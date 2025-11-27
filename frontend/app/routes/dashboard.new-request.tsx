@@ -91,11 +91,9 @@ export default function NewRequest() {
 
       console.log('Sending request data:', requestData); // Debug log
       await createRequest(requestData as any);
-      toast.success('Purchase request submitted successfully!');
       navigate('/dashboard/my-requests');
     } catch (error) {
       console.error('Failed to submit request:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to submit request');
     } finally {
       setIsSubmitting(false);
     }

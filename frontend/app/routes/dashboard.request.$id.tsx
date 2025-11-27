@@ -93,16 +93,13 @@ export default function RequestDetail() {
     try {
       if (approvalAction === 'APPROVED') {
         await approveRequest(parseInt(id), approvalComment);
-        toast.success('Request approved successfully!');
       } else {
         await rejectRequest(parseInt(id), approvalComment);
-        toast.success('Request rejected successfully!');
       }
       
       navigate('/dashboard/pending-requests');
     } catch (error) {
       console.error('Approval action failed:', error);
-      toast.error('Failed to submit approval');
     } finally {
       setIsSubmittingApproval(false);
     }
@@ -126,7 +123,6 @@ export default function RequestDetail() {
       setFinanceNote('');
     } catch (error) {
       console.error('Finance note submission failed:', error);
-      toast.error('Failed to add finance note');
     } finally {
       setIsSubmittingNote(false);
     }
@@ -155,7 +151,6 @@ export default function RequestDetail() {
       }
 
       await uploadRequestFiles(parseInt(id), formData as any);
-      toast.success('Files uploaded successfully!');
       
       // Refresh data and clear form
       await fetchRequestDetails(parseInt(id));

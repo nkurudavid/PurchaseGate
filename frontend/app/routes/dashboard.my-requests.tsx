@@ -25,7 +25,7 @@ interface Request {
 export default function MyRequests() {
   const { fetchRequests, requests, isLoadingRequests } = useData();
   const [filter, setFilter] = useState('all');
-  const typedRequests: Request[] = requests as unknown as Request[];
+  const typedRequests: Request[] = (requests || []) as unknown as Request[];
 
   // Fetch requests on mount
   useEffect(() => {
@@ -36,10 +36,10 @@ export default function MyRequests() {
   const filteredRequests: Request[] =
     filter === 'all'
       ? typedRequests
-      : typedRequests.filter(req => req.status.toLowerCase() === filter);
+      : typedRequests.filter(req => (req.status || '').toLowerCase() === filter);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toUpperCase()) {
+  const getStatusColor = (status?: string) => {
+    switch ((status || '').toUpperCase()) {
       case 'APPROVED':
         return 'bg-green-100 text-green-800';
       case 'PENDING':
@@ -72,24 +72,24 @@ export default function MyRequests() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
           <p className="text-gray-600 text-sm">Total Requests</p>
-          <p className="text-2xl font-bold text-gray-800">{requests.length}</p>
+          <p className="text-2xl font-bold text-gray-800">{typedRequests.length}</p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
           <p className="text-gray-600 text-sm">Pending</p>
           <p className="text-2xl font-bold text-yellow-600">
-            {requests.filter(r => r.status.toUpperCase() === 'PENDING').length}
+            {typedRequests.filter(r => (r.status || '').toUpperCase() === 'PENDING').length}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
           <p className="text-gray-600 text-sm">Approved</p>
           <p className="text-2xl font-bold text-green-600">
-            {requests.filter(r => r.status.toUpperCase() === 'APPROVED').length}
+            {typedRequests.filter(r => (r.status || '').toUpperCase() === 'APPROVED').length}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
           <p className="text-gray-600 text-sm">Rejected</p>
           <p className="text-2xl font-bold text-red-600">
-            {requests.filter(r => r.status.toUpperCase() === 'REJECTED').length}
+            {typedRequests.filter(r => (r.status || '').toUpperCase() === 'REJECTED').length}
           </p>
         </div>
       </div>
@@ -169,8 +169,8 @@ export default function MyRequests() {
                           request.status
                         )}`}
                       >
-                        {request.status.charAt(0).toUpperCase() +
-                          request.status.slice(1).toLowerCase()}
+                        {(request.status || '').charAt(0).toUpperCase() +
+                          (request.status || '').slice(1).toLowerCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">

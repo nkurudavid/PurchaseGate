@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       name: 'All Requests', 
       path: '/dashboard/all-requests', 
       icon: '📋',
-      roles: ['finance']
+      roles: ['approver', 'finance']
     },
     { 
       name: 'Reports', 
