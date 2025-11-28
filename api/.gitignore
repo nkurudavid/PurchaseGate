@@ -1,0 +1,10 @@
+Pipfile
+Pipfile.lock
+requirements.txt
+db.sqlite3
+# .env.*
+# .gitignore
+.dockerignore
+# dockerfile
+
+commands.txt
