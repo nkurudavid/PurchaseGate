@@ -1,41 +1,59 @@
 services:
-  # PostgreSQL Database
-  - type: pserv
-    name: purchasegate-db
-    env: docker
-    plan: free
-    
   # Django Backend
   - type: web
     name: purchasegate-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
     env: docker
-    dockerfilePath: ./api/Dockerfile
-    dockerContext: ./api
     envVars:
+      - key: POSTGRES_DB
+        sync: false
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: purchasegate-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: purchasegate-db
+          property: port
       - key: DATABASE_URL
         fromDatabase:
           name: purchasegate-db
           property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
         value: .onrender.com
       - key: DEBUG
-        value: False
+        value: "False"
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://purchasegate-frontend.onrender.com
     healthCheckPath: /api/health/
     
   # React Router Frontend  
   - type: web
     name: purchasegate-frontend
-    env: docker
+    runtime: docker
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
+    plan: free
+    env: docker
     envVars:
       - key: NODE_ENV
         value: production
-      - key: API_URL
+      - key: VITE_API_URL
         fromService:
           type: web
           name: purchasegate-backend
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
 
 databases:
   - name: purchasegate-db
