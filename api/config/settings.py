@@ -49,7 +49,6 @@ BACKEND_URL = os.getenv('BACKEND_URL')
 INTERNAL_FRONTEND_URL = os.getenv('INTERNAL_FRONTEND_URL', '')
 INTERNAL_BACKEND_URL = os.getenv('INTERNAL_BACKEND_URL', '')
 
-
 CORS_ALLOWED_ORIGINS = [
     url for url in [
         FRONTEND_URL, 
