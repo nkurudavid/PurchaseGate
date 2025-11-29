@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import PurchaseRequest, RequestItem, ApprovalStep, FinanceNote
+from .models import PurchaseRequest, RequestItem, ApprovalStep, FinanceNote, ApprovalPolicy
 from apps.purchases.constants import PurchaseStatus, ApprovalStatus
 
 
@@ -110,3 +110,29 @@ class FinanceUpdateSerializer(serializers.ModelSerializer):
                 setattr(instance, field, validated_data[field])
         instance.save()
         return instance
+    
+    
+    
+    
+    class ApprovalPolicySerializer(serializers.ModelSerializer):
+        class Meta:
+            model = ApprovalPolicy
+            fields = ["id", "title", "min_amount", "max_amount", "required_approval_levels", "active", "created_at",]
+            read_only_fields = ["id", "created_at"]
+
+        def validate(self, data):
+            min_amount = data.get("min_amount")
+            max_amount = data.get("max_amount")
+
+            if min_amount is not None and max_amount is not None:
+                if min_amount > max_amount:
+                    raise serializers.ValidationError({
+                        "min_amount": "Minimum amount cannot be greater than maximum amount."
+                    })
+
+            if data.get("required_approval_levels", 0) < 1:
+                raise serializers.ValidationError({
+                    "required_approval_levels": "Approval levels must be greater than zero."
+                })
+
+            return data
