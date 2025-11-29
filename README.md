@@ -56,6 +56,15 @@ A Purchase Request & Approval System allows employees to request items/services 
 ## Create Django superuser:
 `docker-compose exec backend python manage.py createsuperuser`
 
+<br/>
+
+System User roles: <br/>
+- admin
+- staff
+- approver
+- finance
+
+
 ## URL to access
 
 Frontend: `http://localhost`
