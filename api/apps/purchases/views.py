@@ -7,14 +7,15 @@ from rest_framework.exceptions import ParseError
 
 from apps.usr.constants import UserRole
 from apps.usr.permissions import IsApprover, IsFinanceOfficer, IsStaffOfficer, IsNotAdmin
-from apps.purchases.models import PurchaseRequest, ApprovalStep, FinanceNote
+from apps.purchases.models import PurchaseRequest, ApprovalStep, FinanceNote,ApprovalPolicy
 from apps.purchases.constants import PurchaseStatus, ApprovalStatus
 from apps.purchases.serializers import (
     ApprovalStepSerializer,
     FinanceNoteSerializer,
     PurchaseRequestCreateSerializer,
     PurchaseRequestSerializer,
-    FinanceUpdateSerializer
+    FinanceUpdateSerializer,
+    ApprovalPolicySerializer,
 )
 
 
@@ -172,3 +173,83 @@ class FinanceNoteViewSet(viewsets.GenericViewSet,
         return Response({
             'message': 'Finance note deleted successfully!'
         }, status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+class ApprovalPolicyViewSet(viewsets.GenericViewSet, 
+                            mixins.CreateModelMixin, 
+                            mixins.UpdateModelMixin, 
+                            mixins.DestroyModelMixin, 
+                            mixins.RetrieveModelMixin, 
+                            mixins.ListModelMixin):
+
+    queryset = ApprovalPolicy.objects.all()
+    serializer_class = ApprovalPolicySerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                    "message": "Approval policy created successfully.",
+                    "data": serializer.data
+                }, status=status.HTTP_201_CREATED)
+
+        return Response({
+                    "message": "Failed to create approval policy.",
+                    "errors": serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                        "message": "Approval policy updated successfully.",
+                        "data": serializer.data
+                    }, status=status.HTTP_200_OK)
+
+        return Response({
+                    "message": "Failed to update approval policy.",
+                    "errors": serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response({ "message": "Approval policy deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # OPTIONAL FILTER: match amount
+        amount = request.query_params.get("amount")
+        serializer_context = {}
+
+        if amount:
+            serializer_context["amount"] = amount
+
+        serializer = self.get_serializer(
+            queryset,
+            many=True,
+            context=serializer_context
+        )
+
+        return Response({
+                        "message": "Approval policies fetched successfully.",
+                        "count": queryset.count(),
+                        "data": serializer.data
+                    }, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        return Response({
+                        "message": "Approval policy fetched successfully.",
+                        "data": serializer.data
+                    }, status=status.HTTP_200_OK)

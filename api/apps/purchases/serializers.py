@@ -114,25 +114,25 @@ class FinanceUpdateSerializer(serializers.ModelSerializer):
     
     
     
-    class ApprovalPolicySerializer(serializers.ModelSerializer):
-        class Meta:
-            model = ApprovalPolicy
-            fields = ["id", "title", "min_amount", "max_amount", "required_approval_levels", "active", "created_at",]
-            read_only_fields = ["id", "created_at"]
+class ApprovalPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalPolicy
+        fields = ["id", "title", "min_amount", "max_amount", "required_approval_levels", "active", "created_at",]
+        read_only_fields = ["id", "created_at"]
 
-        def validate(self, data):
-            min_amount = data.get("min_amount")
-            max_amount = data.get("max_amount")
+    def validate(self, data):
+        min_amount = data.get("min_amount")
+        max_amount = data.get("max_amount")
 
-            if min_amount is not None and max_amount is not None:
-                if min_amount > max_amount:
-                    raise serializers.ValidationError({
-                        "min_amount": "Minimum amount cannot be greater than maximum amount."
-                    })
-
-            if data.get("required_approval_levels", 0) < 1:
+        if min_amount is not None and max_amount is not None:
+            if min_amount > max_amount:
                 raise serializers.ValidationError({
-                    "required_approval_levels": "Approval levels must be greater than zero."
+                    "min_amount": "Minimum amount cannot be greater than maximum amount."
                 })
 
-            return data
+        if data.get("required_approval_levels", 0) < 1:
+            raise serializers.ValidationError({
+                "required_approval_levels": "Approval levels must be greater than zero."
+            })
+
+        return data
